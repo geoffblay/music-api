@@ -29,7 +29,7 @@ Our music API will hold information on all different aspects of the music indust
 * runtime: the time in seconds of the song
 * genre: the genre that best fits the style of the song
 
-**2.) /artists/{id}: (GET) **This endpoint will return a single artist by its identifier
+**2.) /artists/{id}: (GET)**This endpoint will return a single artist by its identifier
 
 
 
