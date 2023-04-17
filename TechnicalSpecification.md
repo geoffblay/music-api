@@ -85,6 +85,6 @@ Our music API will hold information on all different aspects of the music indust
 
 **3) Bands: **In the case that users search for a band or group using the artist endpoint, a data structure containing relevant information on all members should be returned.
 
-**4) Input validation: **When input does not correspond to any valid data, make sure to raise a detailed error documenting the issue. 
+**4) Input validation:** When input does not correspond to any valid data, make sure to raise a detailed error documenting the issue. 
 
-**5) Multi genre: **In the case that a song or album falls into multiple genres, a data structure containing both genres should be returned. 
+**5) Multi genre:** In the case that a song or album falls into multiple genres, a data structure containing both genres should be returned. 
