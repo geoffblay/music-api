@@ -63,13 +63,13 @@ Our music API will hold information on all different aspects of the music indust
 
 **10.) /playlists/create (GET)** This endpoint will return a created playlist for the user based on user input. 
 
-   **Input:**
+**Input:**
 
 * song_id: the id of a song to be used to create a stylized playlist
 * genre:  a unique genre to use to create a stylized playlist
 * artist_id: the id of an artist to use to create a stylized playlist
 
-   **Output:**
+**Output:**
 
 * Json of a stylized playlist, which can then be posted to the database if desired
 
