@@ -19,6 +19,12 @@ Our music API will hold information on all different aspects of the music indust
 
 **Endpoints**
 
+**0.) /search?type={type}&query={query}  (GET)**  This endpoint will be used to search the entire database
+
+* Type: the ‘type’ field will be used to specify if the user would like to search for a song, album, artist, playlist. If no type is provided, the search will include all aspects matching. 
+* The query field will be used to take the user’s text input and match the request to find items. 
+
+
 **1.)  /songs/{id}: (GET)** This endpoint will return a single song by its identifier
 
 
@@ -84,3 +90,9 @@ Our music API will hold information on all different aspects of the music indust
 **4) Input validation:** When input does not correspond to any valid data, make sure to raise a detailed error documenting the issue. 
 
 **5) Multi genre:** In the case that a song or album falls into multiple genres, a data structure containing both genres should be returned. 
+
+**6) Duplicate Entries** In the event that a song, album, or artist potentially gets posted twice, this could lead to undesirable behavior and have transitive effects on other attributes. In order to prevent this, we will make sure that our schema definitions ensure that certain fields are unique. For instance, artist_name will likely be a unique key, as well as the combination of song_id and artist_id. 
+
+**7) Missing/Incomplete Data** In the event that a song, album, or artist potentially gets posted twice, this could lead to undesirable behavior and have transitive effects on other attributes. In order to prevent this, we will make sure that our schema definitions ensure that certain fields are unique. For instance, artist_name will likely be a unique key, as well as the combination of song_id and artist_id. 
+
+**8)Large Requests** Our query parameters for the search function will help to limit the amount of data requested by the user. Though we may decide to define a hard limit on the amount of data returned, if this proves to be an issue. 
