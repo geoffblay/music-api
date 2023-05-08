@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import characters, conversations, lines, movies, pkg_util
+
 
 description = """
 Movie API returns dialog statistics on top hollywood movies from decades past.
@@ -39,7 +39,7 @@ app = FastAPI(
         "name": "Geoff Blaylock",
         "email": "blaylock@calpoly.edu",
         "name": "Cole Robinson",
-        "email": "crobin27@calpoly.edu"
+        "email": "crobin27@calpoly.edu",
     },
     openapi_tags=tags_metadata,
 )
