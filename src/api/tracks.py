@@ -7,6 +7,7 @@ import sqlalchemy as sa
 
 router = APIRouter()
 
+
 class TrackJson(BaseModel):
     title: str
     album_id: str
@@ -35,8 +36,6 @@ def add_track(track_id: int, track: TrackJson):
         )
 
         artist_id = (conn.execute(get_artist_id_stmt).fetchone())._asdict()
-        
-        
 
 
 @router.get("/tracks/{track_id}", tags=["tracks"])
