@@ -17,7 +17,19 @@ tags_metadata = [
     {
         "name": "tracks",
         "description": "Access information on tracks.",
-    }
+    },
+    {
+        "subgenres": "subgenres",
+        "description": "Access information on subgenres.",
+    },
+    {
+        "playlists": "playlists",
+        "description": "Access information on playlists.",
+    },
+    {
+        "search": "search",
+        "description": "Search for artists, albums, and tracks.",
+    },
 ]
 
 app = FastAPI(

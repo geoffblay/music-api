@@ -40,7 +40,7 @@ def get_genre(genre_id: int):
     )
 
     with db.engine.connect() as conn:
-        result = conn.execute(get_genre_stmt)
+        result = conn.execute(get_genre_stmt).fetchone()._asdict()
         if result:
-            json = {"genre_id": genre_id, "name": result.name}
+            json = {"genre_id": genre_id, "name": result["name"]}
             return json

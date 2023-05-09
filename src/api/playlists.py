@@ -11,7 +11,7 @@ router = APIRouter()
 
 class PlaylistJson(BaseModel):
     name: str
-    tracks: list[int]
+    track_ids: list[int]
 
 
 @router.post("/playlists/", tags=["playlists"])
@@ -21,7 +21,7 @@ def add_playlist(playlist: PlaylistJson):
 
     The endpoint accepts a JSON object with the following fields:
     - title: string
-    - tracks: a list of track_ids for the playlist
+    - track_ids: a list of track_ids for the playlist
 
     The endpoint returns the id of the resulting playlist that was created.
     """
