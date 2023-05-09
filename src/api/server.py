@@ -1,9 +1,5 @@
 from fastapi import FastAPI
-<<<<<<< HEAD
-from src.api import artists, albums, playlists
-=======
 from src.api import artists, tracks, subgenres, albums, playlists
->>>>>>> cole-v1
 
 
 description = """
