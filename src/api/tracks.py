@@ -7,7 +7,6 @@ from datetime import date
 import sqlalchemy as sa
 from datetime import date
 
-
 router = APIRouter()
 
 
@@ -110,7 +109,38 @@ def get_track(track_id: int):
     * `name`: The name of the artist.
     """
 
-    json = {"test"}
+    with db.engine.connect() as conn:
+        track = conn.execute(
+            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
+        ).fetchone()
+
+        if track:
+            artists = conn.execute(
+                sa.select(db.artists.c.artist_id, db.artists.c.name)
+                .select_from(db.track_artist.join(db.artists))
+                .where(db.track_artist.c.track_id == track_id)
+            ).fetchall()
+
+            album_title = conn.execute(
+                sa.select(db.albums.c.title)
+                .select_from(db.tracks.join(db.albums))
+                .where(db.tracks.c.track_id == track_id)
+            ).fetchone()
+
+            genre = conn.execute(
+                sa.select(db.subgenres.c.name)
+                .select_from(db.tracks.join(db.subgenres))
+                .where(db.tracks.c.track_id == track_id)
+            ).fetchone()
+
+            json = {
+                "track_id": track.track_id,
+                "title": track.title,
+                "artists": artists,
+                "album": album_title,
+                "runtime": track.runtime,
+                "genre": genre,
+            }
     return json
 
     # raise HTTPException(status_code=404, detail="track not found.")
