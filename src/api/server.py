@@ -43,15 +43,12 @@ app = FastAPI(
 )
 
 app.include_router(artists.router)
-<<<<<<< HEAD
 app.include_router(albums.router)
 app.include_router(playlists.router)
 
-=======
 app.include_router(tracks.router)
 app.include_router(subgenres.router)
 app.include_router(playlists.router)
->>>>>>> cole-v1
 
 
 @app.get("/")
