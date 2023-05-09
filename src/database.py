@@ -59,3 +59,5 @@ artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
 
 track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=engine)
 album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
+playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=engine)
+
