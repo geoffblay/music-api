@@ -1,9 +1,5 @@
 from fastapi import FastAPI
-<<<<<<< HEAD
-from src.api import artists, albums, playlists
-=======
 from src.api import artists, tracks, subgenres, albums, playlists
->>>>>>> cole-v1
 
 
 description = """
@@ -47,15 +43,12 @@ app = FastAPI(
 )
 
 app.include_router(artists.router)
-<<<<<<< HEAD
 app.include_router(albums.router)
 app.include_router(playlists.router)
 
-=======
 app.include_router(tracks.router)
 app.include_router(subgenres.router)
 app.include_router(playlists.router)
->>>>>>> cole-v1
 
 
 @app.get("/")

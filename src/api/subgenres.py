@@ -29,3 +29,18 @@ def add_genre(genre: GenreJson):
         conn.commit()
 
         return result.inserted_primary_key[0]
+
+
+@router.get("/genres/", tags=["genres"])
+def get_genre(genre_id: int):
+    get_genre_stmt = (
+        sa.select(db.subgenres.c.name)
+        .select_from(db.subgenres)
+        .where(db.subgenres.c.genre_id == genre_id)
+    )
+
+    with db.engine.connect() as conn:
+        result = conn.execute(get_genre_stmt)
+        if result:
+            json = {"genre_id": genre_id, "name": result.name}
+            return json
