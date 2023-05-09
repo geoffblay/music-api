@@ -38,14 +38,14 @@ def get_artist(artist_id: int):
 
         if artist:
             tracks = conn.execute(
-                sa.select(db.tracks)
+                sa.select(db.tracks.c.track_id, db.tracks.c.title, db.tracks.c.release_date)
                 .select_from(db.tracks.join(db.track_artist))
                 .where(db.track_artist.c.artist_id == artist_id)
             ).fetchall()
             tracks = [t._asdict() for t in tracks]
 
             albums = conn.execute(
-                sa.select(db.albums)
+                sa.select(db.albums.c.album_id, db.albums.c.title, db.albums.c.release_date)
                 .select_from(db.albums.join(db.album_artist))
                 .where(db.album_artist.c.artist_id == artist_id)
             ).fetchall()

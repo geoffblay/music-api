@@ -7,10 +7,15 @@ import json
 client = TestClient(app)
 
 
-# example test for reference
-def test_get_character():
-    response = client.get("/characters/7421")
+def test_get_artist():
+    response = client.get("/artists/2")
     assert response.status_code == 200
 
-    with open("test/characters/7421.json", encoding="utf-8") as f:
+    with open("testing/artists/get_artist2.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
+
+def test_get_artist_404():
+    response = client.get("/artists/999999999")
+    assert response.status_code == 404
+
+    assert response.json() == {"detail": "Artist not found."}

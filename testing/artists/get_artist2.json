@@ -1,0 +1,46 @@
+{
+    "artist_id": 2,
+    "name": "david bowie",
+    "birthdate": "1947-01-08",
+    "gender": "M",
+    "deathdate": "2016-01-10",
+    "tracks": [
+        {
+            "track_id": 9,
+            "title": "Station to Station",
+            "release_date": "1976-01-23"
+        },
+        {
+            "track_id": 10,
+            "title": "Golden Years",
+            "release_date": "1976-01-23"
+        },
+        {
+            "track_id": 11,
+            "title": "Word on a Wing",
+            "release_date": "1976-01-23"
+        },
+        {
+            "track_id": 12,
+            "title": "TVC15",
+            "release_date": "1976-01-23"
+        },
+        {
+            "track_id": 13,
+            "title": "Stay",
+            "release_date": "1976-01-23"
+        },
+        {
+            "track_id": 14,
+            "title": "Wild is the Wind",
+            "release_date": "1976-01-23"
+        }
+    ],
+    "albums": [
+        {
+            "album_id": 5,
+            "title": "Station to Station",
+            "release_date": "1976-01-23"
+        }
+    ]
+}
