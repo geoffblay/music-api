@@ -4,7 +4,8 @@ import io
 from supabase import Client, create_client
 import dotenv
 import sqlalchemy
-from datetime import date
+from datetime import datetime
+
 
 # Supabase and Engine setup
 # *********************************************************************************
@@ -56,3 +57,12 @@ playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
 albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
 genres = sqlalchemy.Table("subgenres", metadata_obj, autoload_with=engine)
 artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
+
+
+def is_valid_date(date_string, date_format="%Y-%m-%d"):
+    try:
+        datetime.strptime(date_string, date_format)
+        return True
+    except ValueError:
+        print(date_string)
+        return False
