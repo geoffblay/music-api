@@ -1,21 +1,9 @@
 from fastapi import FastAPI
-from src.api import artists, tracks, subgenres, albums, playlists
+from src.api import artists, tracks, subgenres, albums, playlists, search
 
 
 description = """
-Movie API returns dialog statistics on top hollywood movies from decades past.
-
-## Characters
-
-You can:
-* **list characters with sorting and filtering options.**
-* **retrieve a specific character by id**
-
-## Movies
-
-You can:
-* **list movies with sorting and filtering options.**
-* **retrieve a specific movie by id**
+ROCK API returns information on popular rock artists, albums, and tracks.
 """
 tags_metadata = [
     {
@@ -23,10 +11,13 @@ tags_metadata = [
         "description": "Aceess information on artists.",
     },
     {
-        "name": "movies",
-        "description": "Access information on top-rated movies.",
+        "name": "albums",
+        "decription": "Acess information on albums.",
     },
-    {"name": "lines", "decription": "Acess information on lines in movies."},
+    {
+        "name": "tracks",
+        "description": "Access information on tracks.",
+    }
 ]
 
 app = FastAPI(
@@ -49,6 +40,7 @@ app.include_router(playlists.router)
 app.include_router(tracks.router)
 app.include_router(subgenres.router)
 app.include_router(playlists.router)
+>>>>>>> cole-v1
 
 
 @app.get("/")
