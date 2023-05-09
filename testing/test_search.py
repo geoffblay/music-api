@@ -7,15 +7,15 @@ import json
 client = TestClient(app)
 
 
-def test_get_artist():
-    response = client.get("/artists/2")
+def test_search1():
+    response = client.get("/search/?name=bowie")
     assert response.status_code == 200
 
-    with open("testing/artists/get_artist2.json", encoding="utf-8") as f:
+    with open("testing/search/search_bowie.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
 def test_get_artist_404():
-    response = client.get("/artists/999999999")
+    response = client.get("/search/?name=skrillex")
     assert response.status_code == 404
 
-    assert response.json() == {"detail": "Artist not found."}
+    assert response.json() == {"detail": "No results."}
