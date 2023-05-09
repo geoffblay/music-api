@@ -11,10 +11,11 @@ router = APIRouter()
 
 class TrackJson(BaseModel):
     title: str
-    album_id: int or None
+    album_id: int = None
     runtime: int
     genre_id: int
     release_date: date
+    artist_ids: list[int]
 
 
 @router.post("/tracks/", tags=["tracks"])
@@ -49,9 +50,9 @@ def add_track(track: TrackJson):
     )
 
     check_genre_exists_stmt = (
-        sa.select(db.genres.c.genre_id)
-        .select_from(db.genres)
-        .where(db.genres.c.genre_id == track.genre_id)
+        sa.select(db.subgenres.c.genre_id)
+        .select_from(db.subgenres)
+        .where(db.subgenres.c.genre_id == track.genre_id)
     )
 
     with db.engine.connect() as conn:
@@ -77,6 +78,16 @@ def add_track(track: TrackJson):
         )
         result = conn.execute(new_track_stmt)
         conn.commit()
+
+        for artist_id in track.artist_ids:
+            new_track_artist_stmt = sa.insert(db.track_artist).values(
+                {
+                    "track_id": result.inserted_primary_key[0],
+                    "artist_id": artist_id,
+                }
+            )
+            conn.execute(new_track_artist_stmt)
+            conn.commit()
 
         return result.inserted_primary_key[0]
 

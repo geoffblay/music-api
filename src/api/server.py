@@ -45,7 +45,7 @@ app = FastAPI(
 app.include_router(artists.router)
 app.include_router(tracks.router)
 app.include_router(subgenres.router)
-# app.include_router(conversations.router)
+app.include_router(playlists.router)
 
 
 @app.get("/")
