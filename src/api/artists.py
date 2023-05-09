@@ -8,6 +8,7 @@ import sqlalchemy as sa
 
 router = APIRouter()
 
+
 @router.get("/artists/{artist_id}", tags=["artists"])
 def get_artist(artist_id: int):
     """
@@ -58,7 +59,6 @@ def get_artist(artist_id: int):
 
         else:
             raise HTTPException(status_code=404, detail="Artist not found.")
-            
 
 
 class ArtistJson(BaseModel):
@@ -75,9 +75,9 @@ def add_artist(artist: ArtistJson):
 
     The endpoint accepts a JSON object with the following fields:
     - name: string
-    - birthday: date
-    - gender: string
-    - deathday: date or null
+    - birthdate: date
+    - gender: string ("M" or "F")
+    - deathdate: date or null
 
     The endpoint returns the id of the resulting artist that was created.
     """

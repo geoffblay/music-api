@@ -17,7 +17,15 @@ tags_metadata = [
     {
         "name": "tracks",
         "description": "Access information on tracks.",
-    }
+    },
+    {
+        "subgenres": "subgenres",
+        "description": "Access information on subgenres.",
+    },
+    {
+        "playlists": "playlists",
+        "description": "Access information on playlists.",
+    },
 ]
 
 app = FastAPI(
@@ -40,7 +48,6 @@ app.include_router(playlists.router)
 app.include_router(tracks.router)
 app.include_router(subgenres.router)
 app.include_router(playlists.router)
->>>>>>> cole-v1
 
 
 @app.get("/")

@@ -9,6 +9,7 @@ from datetime import date
 
 router = APIRouter()
 
+
 @router.get("/tracks/{track_id}", tags=["tracks"])
 def get_track(track_id: int):
     """
@@ -57,10 +58,10 @@ def get_track(track_id: int):
             track = track._asdict()
             del track["genre_id"]
             del track["album_id"]
-            
+
             track["artists"] = artists
-            track["genre"] = genre['name']
-            track["album"] = album['title']
+            track["genre"] = genre["name"]
+            track["album"] = album["title"]
 
             return track
 
@@ -87,7 +88,7 @@ def add_track(track: TrackJson):
 
     if track.runtime and track.runtime < 1:
         raise HTTPException(
-            status_code=404, detail="Runtime cannot be null or less than 1."
+            status_code=422, detail="Runtime cannot be null or less than 1."
         )
 
     if track.release_date == None:
@@ -149,56 +150,3 @@ def add_track(track: TrackJson):
             conn.commit()
 
         return result.inserted_primary_key[0]
-
-
-@router.get("/tracks/{track_id}", tags=["tracks"])
-def get_track(track_id: int):
-    """
-    This endpoint returns a single track by its identifier. For each track it returns:
-    * `track_id`: the internal id of the track.
-    * `title`: the title of the track.
-    * `artists`: the artist of the track.
-    * `album`: the album the track is from.
-    * `runtime`: length of the track.
-    * `genre`: genre of the track.
-
-    Each artist is represented by a dictionary with the following keys:
-    * `artist_id`: the internal id of the artist.
-    * `name`: The name of the artist.
-    """
-
-    with db.engine.connect() as conn:
-        track = conn.execute(
-            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
-        ).fetchone()
-
-        if track:
-            artists = conn.execute(
-                sa.select(db.artists.c.artist_id, db.artists.c.name)
-                .select_from(db.track_artist.join(db.artists))
-                .where(db.track_artist.c.track_id == track_id)
-            ).fetchall()
-
-            album_title = conn.execute(
-                sa.select(db.albums.c.title)
-                .select_from(db.tracks.join(db.albums))
-                .where(db.tracks.c.track_id == track_id)
-            ).fetchone()
-
-            genre = conn.execute(
-                sa.select(db.subgenres.c.name)
-                .select_from(db.tracks.join(db.subgenres))
-                .where(db.tracks.c.track_id == track_id)
-            ).fetchone()
-
-            json = {
-                "track_id": track.track_id,
-                "title": track.title,
-                "artists": artists,
-                "album": album_title,
-                "runtime": track.runtime,
-                "genre": genre,
-            }
-    return json
-
-    # raise HTTPException(status_code=404, detail="track not found.")

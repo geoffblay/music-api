@@ -1,0 +1,14 @@
+{
+    "track_id": 9,
+    "title": "Station to Station",
+    "runtime": 617,
+    "release_date": "1976-01-23",
+    "artists": [
+        {
+            "artist_id": 2,
+            "name": "david bowie"
+        }
+    ],
+    "genre": "space rock",
+    "album": "Station to Station"
+}
