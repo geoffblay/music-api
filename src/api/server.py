@@ -26,6 +26,10 @@ tags_metadata = [
         "playlists": "playlists",
         "description": "Access information on playlists.",
     },
+    {
+        "search": "search",
+        "description": "Search for artists, albums, and tracks.",
+    },
 ]
 
 app = FastAPI(
