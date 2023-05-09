@@ -17,6 +17,7 @@ tags_metadata = [
     {
         "name": "tracks",
         "description": "Access information on tracks.",
+    },
     {
         "subgenres": "subgenres",
         "description": "Access information on subgenres.",
