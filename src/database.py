@@ -55,9 +55,8 @@ def try_parse(type, val):
 tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=engine)
 playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
 albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
-genres = sqlalchemy.Table("subgenres", metadata_obj, autoload_with=engine)
+subgenres = sqlalchemy.Table("subgenres", metadata_obj, autoload_with=engine)
 artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
-
 track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=engine)
-album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
 playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=engine)
+album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
