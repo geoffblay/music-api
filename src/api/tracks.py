@@ -4,6 +4,8 @@ from src import database as db
 from fastapi.params import Query
 from pydantic import BaseModel
 import sqlalchemy as sa
+from datetime import date
+
 
 router = APIRouter()
 
@@ -13,12 +15,23 @@ class TrackJson(BaseModel):
     album_id: str or None
     runtime: int
     genre_id: str
-    release_year: int
+    release_date: date
 
 
 @router.post("/tracks/", tags=["tracks"])
-def add_track(track_id: int, track: TrackJson):
-    """ """
+def add_track(track: TrackJson):
+    """
+    This endpoint adds an track to the database
+
+    The endpoint accepts a JSON object with the following fields:
+    - title: string
+    - album_id: str or None
+    - runtime: int
+    - genre_id: str
+    - release_date: date
+
+    The endpoint returns the id of the resulting track that was created.
+    """
 
     # null checks
     if track.title == None:
