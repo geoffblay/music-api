@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from src.api import artists
 
 
 description = """
@@ -17,18 +18,15 @@ You can:
 * **retrieve a specific movie by id**
 """
 tags_metadata = [
-    # {
-    #     "name": "characters",
-    #     "description": "Access information on characters in movies.",
-    # },
-    # {
-    #     "name": "movies",
-    #     "description": "Access information on top-rated movies.",
-    # },
-    # {
-    #     "name": "lines",
-    #     "decription": "Acess information on lines in movies."
-    # }
+    {
+        "name": "artists",
+        "description": "Aceess information on artists.",
+    },
+    {
+        "name": "movies",
+        "description": "Access information on top-rated movies.",
+    },
+    {"name": "lines", "decription": "Acess information on lines in movies."},
 ]
 
 app = FastAPI(
@@ -43,7 +41,8 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata,
 )
-# app.include_router(characters.router)
+
+app.include_router(artists.router)
 # app.include_router(movies.router)
 # app.include_router(lines.router)
 # app.include_router(conversations.router)

@@ -4,15 +4,16 @@ from src import database as db
 from fastapi.params import Query
 from pydantic import BaseModel
 import sqlalchemy as sa
+from datetime import date
 
 router = APIRouter()
 
 
 class ArtistJson(BaseModel):
     name: str
-    birthday: sa.types.Date
+    birthday: date
     gender: str
-    deathday: sa.types.Date or None
+    deathday: date or None
 
 
 @router.post("/artists/", tags=["artists"])

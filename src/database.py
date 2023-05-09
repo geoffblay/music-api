@@ -4,6 +4,7 @@ import io
 from supabase import Client, create_client
 import dotenv
 import sqlalchemy
+from datetime import date
 
 # Supabase and Engine setup
 # *********************************************************************************
@@ -53,5 +54,5 @@ def try_parse(type, val):
 tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=engine)
 playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
 albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
-genres = sqlalchemy.Table("genres", metadata_obj, autoload_with=engine)
+genres = sqlalchemy.Table("subgenres", metadata_obj, autoload_with=engine)
 artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
