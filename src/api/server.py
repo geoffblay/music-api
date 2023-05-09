@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import artists
+from src.api import artists, albums
 
 
 description = """
@@ -43,6 +43,7 @@ app = FastAPI(
 )
 
 app.include_router(artists.router)
+app.include_router(albums.router)
 # app.include_router(movies.router)
 # app.include_router(lines.router)
 # app.include_router(conversations.router)
