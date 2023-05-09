@@ -64,7 +64,9 @@ def search(
             .offset(offset)
         ).fetchall()
         albums = [a._asdict() for a in albums]
-        
+
+    if not artists and not tracks and not albums:
+        raise HTTPException(status_code=404, detail="No results.")        
 
     json = {
         "tracks": tracks,
