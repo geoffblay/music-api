@@ -3,23 +3,23 @@ from enum import Enum
 from src import database as db
 from fastapi.params import Query
 from pydantic import BaseModel
-import sqlalchemy as sa
 from datetime import date
+import sqlalchemy as sa
 
 router = APIRouter()
 
 
 class ArtistJson(BaseModel):
     name: str
-    birthday: date
+    birthdate: date
     gender: str
-    deathday: date or None
+    deathdate: date = None
 
 
 @router.post("/artists/", tags=["artists"])
-def add_artist(artist_id: int, artist: ArtistJson):
+def add_artist(artist: ArtistJson):
     """
-    This endpoint adds a an artist to the database
+    This endpoint adds an artist to the database
 
     The endpoint accepts a JSON object with the following fields:
     - name: string
@@ -34,7 +34,7 @@ def add_artist(artist_id: int, artist: ArtistJson):
     if artist.name == None:
         raise HTTPException(status_code=404, detail="Name cannot be null.")
 
-    if artist.birthday == None:
+    if artist.birthdate == None:
         raise HTTPException(status_code=404, detail="Birthday cannot be null.")
 
     if artist.gender == None:
@@ -44,10 +44,9 @@ def add_artist(artist_id: int, artist: ArtistJson):
     with db.engine.connect() as conn:
         new_artist_stmt = sa.insert(db.artists).values(
             {
-                "artist_id": artist_id,
-                "name": artist.name,
-                "birthday": artist.birthday,
-                "deathday": artist.deathday,
+                "name": artist.name.lower(),
+                "birthdate": artist.birthdate,
+                "deathdate": artist.deathdate,
                 "gender": artist.gender,
             }
         )
