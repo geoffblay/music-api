@@ -52,6 +52,7 @@ def try_parse(type, val):
         return None
 
 
+test = sqlalchemy.Table("test", metadata_obj, autoload_with=engine)
 tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=engine)
 playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
 albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
