@@ -3,3 +3,6 @@ venv
 .idea
 __pycache__
 /.env
+node_modules
+alembic
+.vscode
