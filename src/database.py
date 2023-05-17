@@ -1,7 +1,5 @@
-import csv
 import os
 import io
-from supabase import Client, create_client
 import dotenv
 import sqlalchemy
 from datetime import datetime
@@ -17,11 +15,13 @@ def database_connection_url():
     return f"postgresql://{DB_USER}:{DB_PASSWD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
 
 
-# DO NOT CHANGE THIS TO BE HARDCODED. ONLY PULL FROM ENVIRONMENT VARIABLES.
-dotenv.load_dotenv()
+# *********************************************************************************
 
 # create the database engine
-engine = sqlalchemy.create_engine(database_connection_url())
+
+database_url = database_connection_url()
+print(database_url)
+engine = sqlalchemy.create_engine(database_url)
 metadata_obj = sqlalchemy.MetaData()
 
 # *********************************************************************************
@@ -34,11 +34,11 @@ def try_parse(type, val):
         return None
 
 
-tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=engine)
-playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
-albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
-subgenres = sqlalchemy.Table("subgenres", metadata_obj, autoload_with=engine)
-artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
-track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=engine)
-playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=engine)
-album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
+# tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=engine)
+# playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
+# albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
+# subgenres = sqlalchemy.Table("subgenres", metadata_obj, autoload_with=engine)
+# artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
+# track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=engine)
+# playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=engine)
+# album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
