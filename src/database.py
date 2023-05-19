@@ -20,7 +20,7 @@ def database_connection_url():
 # create the database engine
 
 database_url = database_connection_url()
-print(database_url)
+# print(database_url)
 engine = sqlalchemy.create_engine(database_url)
 metadata_obj = sqlalchemy.MetaData()
 
