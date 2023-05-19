@@ -13,7 +13,7 @@ class GenreJson(BaseModel):
     name: str
 
 
-@router.post("/genres/", tags=["subgenres"])
+@router.post("/genres/", tags=["genres"])
 def add_genre(genre: GenreJson):
     if genre.name == None:
         raise HTTPException(status_code=404, detail="Genre cannot be null.")

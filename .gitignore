@@ -3,6 +3,12 @@ venv
 .idea
 __pycache__
 /.env
+<<<<<<< HEAD
 /node_modules
 /alembic
 /supabase
+=======
+node_modules
+alembic.ini
+.vscode
+>>>>>>> main
