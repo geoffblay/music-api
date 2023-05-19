@@ -7,24 +7,22 @@ Base = declarative_base()
 class Albums(Base):
     __tablename__ = "albums"
     album_id = sa.Column(sa.Integer, primary_key=True)
-    title = sa.Column(sa.String(160), nullable=False)
+    title = sa.Column(sa.Text, nullable=False)
     release_date = sa.Column(sa.Date, nullable=False)
-    subgenre_id = sa.Column(
-        sa.Integer, sa.ForeignKey("subgenres.subgenre_id"), nullable=False
-    )
+    genre_id = sa.Column(sa.Integer, sa.ForeignKey("genres.genre_id"), nullable=False)
 
 
-class SubGenres(Base):
-    __tablename__ = "subgenres"
-    subgenre_id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String(160), nullable=False)
+class Genres(Base):
+    __tablename__ = "genres"
+    genre_id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.Text, nullable=False)
 
 
 class Artists(Base):
     __tablename__ = "artists"
     artist_id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String(160), nullable=False)
-    gender = sa.Column(sa.String(160), nullable=False)
+    name = sa.Column(sa.Text, nullable=False)
+    gender = sa.Column(sa.Text, nullable=True)
     deathdate = sa.Column(sa.Date, nullable=True)
     birthdate = sa.Column(sa.Date, nullable=True)
 
@@ -32,16 +30,29 @@ class Artists(Base):
 class Tracks(Base):
     __tablename__ = "tracks"
     track_id = sa.Column(sa.Integer, primary_key=True)
-    title = sa.Column(sa.String(160), nullable=False)
+    title = sa.Column(sa.Text, nullable=False)
     runtime = sa.Column(sa.Integer, nullable=False)
-    subgenre_id = sa.Column(sa.ForeignKey("subgenres.subgenre_id"), nullable=False)
+    genre_id = sa.Column(sa.ForeignKey("genres.genre_id"), nullable=False)
     album_id = sa.Column(sa.ForeignKey("albums.album_id"), nullable=False)
+    weather_id = sa.Column(sa.ForeignKey("weather.weather_id"), nullable=False)
+
+
+class Weather(Base):
+    __tablename__ = "weather"
+    weather_id = sa.Column(sa.Integer, primary_key=True)
+    weather = sa.Column(sa.Text, nullable=False)
+
+
+class Vibe(Base):
+    __tablename__ = "vibe"
+    vibe_id = sa.Column(sa.Integer, primary_key=True)
+    vibe = sa.Column(sa.Text, nullable=False)
 
 
 class Playlists(Base):
     __tablename__ = "playlists"
     playlist_id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String(160), nullable=False)
+    name = sa.Column(sa.Text, nullable=False)
 
 
 class Playlist_Track(Base):
