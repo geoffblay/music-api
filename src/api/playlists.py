@@ -11,6 +11,50 @@ class PlaylistJson(BaseModel):
     name: str
     track_ids: list[int]
 
+@router.delete("/playlists/{playlist_id}", tags=["playlists"])
+def delete_playlist(playlist_id: int):
+    """
+    This endpoint deletes a playlist by its identifier.
+    """
+    with db.engine.connect() as conn:
+        conn.execute(
+            sa.delete(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+        )
+    return {"message": "Playlist deleted."}
+
+# TODO: Make a better system for adding and deleting tracks from playlist
+
+@router.put("/playlists/{playlist_id}", tags=["playlists"])
+def update_playlist(playlist_id: int, playlist: PlaylistJson):
+    """
+    This endpoint updates a playlist by its identifier.
+
+    The endpoint accepts a JSON object with the following fields:
+    - title: string
+    - track_ids: a list of track_ids for the playlist
+    """
+    with db.engine.connect() as conn:
+        conn.execute(
+            sa.update(db.playlists)
+            .where(db.playlists.c.playlist_id == playlist_id)
+            .values({"name": playlist.name})
+        )
+
+        conn.execute(
+            sa.delete(db.playlist_track).where(
+                db.playlist_track.c.playlist_id == playlist_id
+            )
+        )
+
+        for track in playlist.track_ids:
+            conn.execute(
+                sa.insert(db.playlist_track).values(
+                    {"playlist_id": playlist_id, "track_id": track}
+                )
+            )
+
+    return {"message": "Playlist updated."}
+
 @router.get("/create/", tags=["playlists"])
 def create(
     location: str="",
