@@ -3,7 +3,6 @@ from enum import Enum
 from src import database as db, weather
 from pydantic import BaseModel
 import sqlalchemy as sa
-import statistics
 
 router = APIRouter()
 
