@@ -46,7 +46,6 @@ def get_album(album_id: int):
 
     """
 
-<<<<<<< HEAD
     # get album, artist, and track information
     stmt = sa.text(
         """
@@ -106,42 +105,13 @@ def get_album(album_id: int):
                 )
 
         return album
-=======
-    with db.engine.connect() as conn:
-        album = conn.execute(
-            sa.select(db.albums).where(db.albums.c.album_id == album_id)
-        ).fetchone()
-
-        if album:
-            artists = conn.execute(
-                sa.select(db.artists)
-                .select_from(db.artists.join(db.album_artist))
-                .where(db.album_artist.c.album_id == album_id)
-            ).fetchall()
-            artists = [a._asdict() for a in artists]
-
-            tracks = conn.execute(
-                sa.select(db.tracks).where(db.tracks.c.album_id == album_id)
-            ).fetchall()
-            tracks = [t._asdict() for t in tracks]
-
-            return {
-                "album_id": album.album_id,
-                "title": album.title,
-                "release_date": album.release_date,
-                "genre_id": album.genre_id,
-                "artists": artists,
-                "tracks": tracks,
-            }
-
-    raise HTTPException(status_code=404, detail="movie not found.")
 
 
 @router.get("/recommend/", tags=["albums"])
 def recommend(
-    location: str="",
-    vibe: str="",
-    num_tracks: int=10,
+    location: str = "",
+    vibe: str = "",
+    num_tracks: int = 10,
 ):
     """
     This endpoint will return an album based on a  location, the time of day at that location, the user's current
@@ -169,7 +139,10 @@ def recommend(
 
         vals["temp"] = weather_data["temperature"] * 4
 
-        if int(weather_data["time"].split(':')[0]) >= 18 or int(weather_data["time"].split(':')[0]) <= 6:
+        if (
+            int(weather_data["time"].split(":")[0]) >= 18
+            or int(weather_data["time"].split(":")[0]) <= 6
+        ):
             time_val = 0
         else:
             time_val = 400
@@ -182,27 +155,25 @@ def recommend(
             WHERE weather = :cond
             """
             result = conn.execute(
-                sa.text(sql), 
-                [{"cond": weather_data["weather"]}]
+                sa.text(sql), [{"cond": weather_data["weather"]}]
             ).fetchone()
             vals["weather"] = result[0]
-        
 
     if vibe:
         if vibe == "happy":
-            vals['mood'] = 343
+            vals["mood"] = 343
         elif vibe == "party":
-            vals['mood'] = 286
+            vals["mood"] = 286
         elif vibe == "workout":
-            vals['mood'] = 229
+            vals["mood"] = 229
         elif vibe == "focus":
-            vals['mood'] = 171
+            vals["mood"] = 171
         elif vibe == "chill":
-            vals['mood'] = 114
+            vals["mood"] = 114
         elif vibe == "sleep":
-            vals['mood'] = 57
+            vals["mood"] = 57
         elif vibe == "heartbroken":
-            vals['mood'] = 0
+            vals["mood"] = 0
 
     avg = sum(vals.values()) / len(vals)
 
@@ -221,20 +192,14 @@ def recommend(
         ) AS t1 ON t1.album_id = tracks.album_id
         """
         result1 = conn.execute(
-            sa.text(sql),
-            [{"avg": avg, "num_tracks": num_tracks}]
+            sa.text(sql), [{"avg": avg, "num_tracks": num_tracks}]
         ).fetchall()
 
         album_id = result1[0][0]
         # genre = max(result1[0][4], key=result1[0][4])
         # print(genre)
 
-        tracks = [{
-            "track_id": t[3],
-            "title": t[4],
-            "runtime": t[5]
-        }
-            for t in result1]
+        tracks = [{"track_id": t[3], "title": t[4], "runtime": t[5]} for t in result1]
 
         sql = """
         SELECT artists.artist_id, artists.name
@@ -242,26 +207,17 @@ def recommend(
         JOIN album_artist ON album_artist.artist_id = artists.artist_id
         WHERE album_artist.album_id = :album_id
         """
-        result2 = conn.execute(
-            sa.text(sql),
-            [{"album_id": album_id}]
-        ).fetchall()
+        result2 = conn.execute(sa.text(sql), [{"album_id": album_id}]).fetchall()
 
-        artists = [{
-            "artist_id": a[0],
-            "name": a[1]
-        }
-            for a in result2]
-        
+        artists = [{"artist_id": a[0], "name": a[1]} for a in result2]
+
         album = {
             "album_id": album_id,
             "title": result1[0][1],
             "release_date": result1[0][2],
             "genre_id": result1[0][3],
             "artists": artists,
-            "tracks": tracks
+            "tracks": tracks,
         }
 
         return album
-
->>>>>>> a8e5caebc1ba3d60f7637c82216ae63889199754
