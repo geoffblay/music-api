@@ -42,13 +42,13 @@ class Vibe(Base):
     __tablename__ = "vibe"
     vibe_id = sa.Column(sa.Integer, primary_key=True)
     vibe = sa.Column(sa.Text, nullable=False)
-    test = sa.Column(sa.Text, nullable=False)
 
 
 class Playlists(Base):
     __tablename__ = "playlists"
     playlist_id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.Text, nullable=False)
+    user_id = sa.Column(sa.ForeignKey("users.user_id"), nullable=False)
 
 
 class Playlist_Track(Base):

@@ -11,6 +11,7 @@ class PlaylistJson(BaseModel):
     name: str
     track_ids: list[int]
 
+
 @router.delete("/playlists/{playlist_id}", tags=["playlists"])
 def delete_playlist(playlist_id: int):
     """
@@ -22,7 +23,9 @@ def delete_playlist(playlist_id: int):
         )
     return {"message": "Playlist deleted."}
 
+
 # TODO: Make a better system for adding and deleting tracks from playlist
+
 
 @router.put("/playlists/{playlist_id}", tags=["playlists"])
 def update_playlist(playlist_id: int, playlist: PlaylistJson):
@@ -55,12 +58,13 @@ def update_playlist(playlist_id: int, playlist: PlaylistJson):
 
     return {"message": "Playlist updated."}
 
+
 @router.get("/create/", tags=["playlists"])
 def create(
-    location: str="",
-    time: str="",
-    vibe: str="",
-    num_tracks: int=0,
+    location: str = "",
+    time: str = "",
+    vibe: str = "",
+    num_tracks: int = 0,
 ):
     """
     This endpoint will create and return an auto-generated playlist based on the user's location, time, and vibe.
@@ -79,7 +83,7 @@ def create(
     * `name`: the name of the artist.
 
     You can curate the playlist to your liking by specifying the following parameters:
-    * `location`: specifying location will return tracks that match the current weather in a given location. 
+    * `location`: specifying location will return tracks that match the current weather in a given location.
     Location must be a valid city, US zip, or lat,long (decimal degree, e.g: 35.2828,120.6596).
     * `time`: specifying time will return tracks that match the time of day. Time must be in the format HH:MM.
     * `vibe`: specifying vibe will return tracks that match the vibe of the playlist. Vibe must be one of the following:
@@ -88,11 +92,11 @@ def create(
         - workout
         - focus
         - sleep
-    
+
     """
     if location:
         weather_data = weather.get_weather_data(location)
-    
+
     print(weather_data)
 
 
@@ -104,6 +108,7 @@ def add_playlist(playlist: PlaylistJson):
     The endpoint accepts a JSON object with the following fields:
     - title: string
     - track_ids: a list of track_ids for the playlist
+    - user_id: the id of the user who created the playlist
 
     The endpoint returns the id of the resulting playlist that was created.
     """
