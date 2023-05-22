@@ -23,4 +23,4 @@ def get_weather_data(city) -> dict:
     return json
 
 
-print(get_weather_data("San Luis Obispo"))
+# print(get_weather_data("San Luis Obispo"))
