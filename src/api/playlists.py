@@ -60,7 +60,7 @@ def update_playlist(playlist_id: int, playlist: PlaylistJson):
 def create(
     location: str="",
     vibe: str="",
-    num_tracks: int=0,
+    num_tracks: int=10,
 ):
     """
     This endpoint will return an auto-generated playlist based on the user's location, time, and vibe.
@@ -134,12 +134,40 @@ def create(
             vals['mood'] = 0
 
 
-    print(vals)
     avg = sum(vals.values()) / len(vals)
     print(avg)
     
-    # print(weather_data)
 
+    with db.engine.begin() as conn:
+        sql = """
+        SELECT t.track_id, t.title, t.runtime, t.genre, a.artist_id, a.name
+        FROM tracks AS t
+        JOIN track_artist AS ta ON t.track_id = ta.track_id
+        JOIN artists AS a ON ta.artist_id = a.artist_id
+        ORDER BY ABS(:avg - t.vibe)
+        LIMIT :num_tracks
+        """
+        result = conn.execute(
+            sa.text(sql),
+            [{"avg": avg, "num_tracks": num_tracks}]
+        ).fetchall()
+        
+        tracks = {}
+        for row in result:
+            if row[0] not in tracks:
+                tracks[row[0]] = {
+                    "title": row[1],
+                    "runtime": row[2],
+                    "genre": row[3],
+                    "artists": [{"artist_id": row[4], "name": row[5]}]
+                }
+            else:
+                tracks[row[0]]["artists"].append({"artist_id": row[4], "name": row[5]})
+
+        return {
+            "tracks": list(tracks.values())
+        }
+        
 
 @router.post("/playlists/", tags=["playlists"])
 def add_playlist(playlist: PlaylistJson):
