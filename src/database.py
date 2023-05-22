@@ -16,7 +16,6 @@ def database_connection_url():
 
 
 # *********************************************************************************
-
 # create the database engine
 
 database_url = database_connection_url()

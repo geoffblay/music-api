@@ -70,3 +70,10 @@ class Track_Artist(Base):
     track_artist_id = sa.Column(sa.Integer, primary_key=True)
     track_id = sa.Column(sa.ForeignKey("tracks.track_id"), nullable=False)
     artist_id = sa.Column(sa.ForeignKey("artists.artist_id"), nullable=False)
+
+
+class Users(Base):
+    __tablename__ = "users"
+    user_id = sa.Column(sa.Integer, primary_key=True)
+    username = sa.Column(sa.Text, nullable=False)
+    password = sa.Column(sa.Text, nullable=False)
