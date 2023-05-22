@@ -1,8 +1,8 @@
-"""update dev
+"""updated tracks
 
-Revision ID: b343a2995780
+Revision ID: 9fdb646d81b6
 Revises: 
-Create Date: 2023-05-21 21:30:54.770210
+Create Date: 2023-05-22 12:02:54.527077
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b343a2995780'
+revision = '9fdb646d81b6'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -29,18 +29,18 @@ def upgrade() -> None:
     sa.Column('name', sa.Text(), nullable=False),
     sa.Column('gender', sa.Text(), nullable=True),
     sa.Column('deathdate', sa.Date(), nullable=True),
-    sa.Column('birthdate', sa.Date(), nullable=True),
+    sa.Column('birthdate', sa.Date(), nullable=False),
     sa.PrimaryKeyConstraint('artist_id')
     )
-    op.create_table('playlists',
-    sa.Column('playlist_id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.Text(), nullable=False),
-    sa.PrimaryKeyConstraint('playlist_id')
+    op.create_table('users',
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('username', sa.Text(), nullable=False),
+    sa.Column('password', sa.Text(), nullable=False),
+    sa.PrimaryKeyConstraint('user_id')
     )
     op.create_table('vibe',
     sa.Column('vibe_id', sa.Integer(), nullable=False),
     sa.Column('vibe', sa.Text(), nullable=False),
-    sa.Column('test', sa.Text(), nullable=False),
     sa.PrimaryKeyConstraint('vibe_id')
     )
     op.create_table('weather',
@@ -57,14 +57,21 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['artist_id'], ['artists.artist_id'], ),
     sa.PrimaryKeyConstraint('album_artist_id')
     )
+    op.create_table('playlists',
+    sa.Column('playlist_id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.Text(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
+    sa.PrimaryKeyConstraint('playlist_id')
+    )
     op.create_table('tracks',
     sa.Column('track_id', sa.Integer(), nullable=False),
     sa.Column('title', sa.Text(), nullable=False),
     sa.Column('runtime', sa.Integer(), nullable=False),
     sa.Column('genre', sa.Text(), nullable=True),
-    sa.Column('album_id', sa.Integer(), nullable=False),
+    sa.Column('album_id', sa.Integer(), nullable=True),
     sa.Column('release_date', sa.Date(), nullable=False),
-    sa.Column('vibe', sa.Integer(), nullable=False),
+    sa.Column('vibe_score', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['album_id'], ['albums.album_id'], ),
     sa.PrimaryKeyConstraint('track_id')
     )
@@ -92,10 +99,11 @@ def downgrade() -> None:
     op.drop_table('track_artist')
     op.drop_table('playlist_track')
     op.drop_table('tracks')
+    op.drop_table('playlists')
     op.drop_table('album_artist')
     op.drop_table('weather')
     op.drop_table('vibe')
-    op.drop_table('playlists')
+    op.drop_table('users')
     op.drop_table('artists')
     op.drop_table('albums')
     # ### end Alembic commands ###
