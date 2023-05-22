@@ -9,13 +9,6 @@ class Albums(Base):
     album_id = sa.Column(sa.Integer, primary_key=True)
     title = sa.Column(sa.Text, nullable=False)
     release_date = sa.Column(sa.Date, nullable=False)
-    genre_id = sa.Column(sa.Integer, sa.ForeignKey("genres.genre_id"), nullable=False)
-
-
-class Genres(Base):
-    __tablename__ = "genres"
-    genre_id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.Text, nullable=False)
 
 
 class Artists(Base):
@@ -32,15 +25,17 @@ class Tracks(Base):
     track_id = sa.Column(sa.Integer, primary_key=True)
     title = sa.Column(sa.Text, nullable=False)
     runtime = sa.Column(sa.Integer, nullable=False)
-    genre_id = sa.Column(sa.ForeignKey("genres.genre_id"), nullable=False)
+    genre = sa.Column(sa.Text, nullable=True)
     album_id = sa.Column(sa.ForeignKey("albums.album_id"), nullable=False)
-    weather_id = sa.Column(sa.ForeignKey("weather.weather_id"), nullable=False)
+    release_date = sa.Column(sa.Date, nullable=False)
+    vibe = sa.Column(sa.Integer, nullable=False)
 
 
 class Weather(Base):
     __tablename__ = "weather"
     weather_id = sa.Column(sa.Integer, primary_key=True)
     weather = sa.Column(sa.Text, nullable=False)
+    weather_rating = sa.Column(sa.Integer, nullable=False)
 
 
 class Vibe(Base):
