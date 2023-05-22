@@ -17,136 +17,139 @@ def get_track(track_id: int):
     * `track_id`: the internal id of the track.
     * `title`: the title of the track.
     * `runtime`: the runtime of the track.
-    * `genre`: the genre id of the track.
+    * `genre`: the genre of the track.
     * `release_date`: the release date of the track.
-    * `album`: the name of the album of the track.
+    * `album`: the name of the album of the track, if there is one.
     * `artists`: a list of artists associated with the track.
 
     Each artist is represented by a dictionary with the following keys:
     * `artist_id`: the internal id of the artist.
     * `name`: the name of the artist.
-
     """
+    # get track information, if track exists
+    track_stmt = sa.text(
+        """
+        SELECT t.track_id, t.title, t.runtime, t.genre, t.release_date, a.title AS album
+        FROM tracks t
+        LEFT JOIN albums AS a ON t.album_id = a.album_id
+        WHERE t.track_id = :track_id
+    """
+    )
 
-    with db.engine.connect() as conn:
-        track = conn.execute(
-            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
-        ).fetchone()
+    # get artists associated with track
+    artist_stmt = sa.text(
+        """
+        SELECT a.artist_id, a.name
+        FROM artists AS a
+        JOIN track_artist AS ta ON a.artist_id = ta.artist_id
+        WHERE ta.track_id = :track_id
+    """
+    )
 
-        if track:
-            artists = conn.execute(
-                sa.select(db.artists.c.artist_id, db.artists.c.name)
-                .select_from(db.artists.join(db.track_artist))
-                .where(db.track_artist.c.track_id == track_id)
-            ).fetchall()
-            artists = [a._asdict() for a in artists]
-
-            genre = conn.execute(
-                sa.select(db.subgenres.c.name)
-                .select_from(db.subgenres)
-                .where(db.subgenres.c.genre_id == track.genre_id)
-            ).fetchone()
-            genre = genre._asdict()
-
-            album = conn.execute(
-                sa.select(db.albums)
-                .select_from(db.albums.join(db.tracks))
-                .where(db.tracks.c.track_id == track_id)
-            ).fetchone()
-            album = album._asdict()
-
-            track = track._asdict()
-            del track["genre_id"]
-            del track["album_id"]
-
-            track["artists"] = artists
-            track["genre"] = genre["name"]
-            track["album"] = album["title"]
-
-            return track
-
-        else:
+    with db.engine.begin() as conn:
+        result = conn.execute(track_stmt, {"track_id": track_id}).fetchone()
+        if not result:
             raise HTTPException(status_code=404, detail="Track not found.")
 
+        # create dictionary to represent track
+        track = result._asdict()
 
-# class TrackJson(BaseModel):
-#     title: str
-#     album_id: int = None
-#     runtime: int
-#     genre_id: int
-#     release_date: date
-#     artist_ids: list[int]
+        # get artists associated with track
+        result = conn.execute(artist_stmt, {"track_id": track_id}).fetchall()
+
+        # create list of dictionaries to represent artists
+        artists = [row._asdict() for row in result]
+        track["artists"] = artists
+
+        return track
 
 
-# @router.post("/tracks/", tags=["tracks"])
-# def add_track(track: TrackJson):
-#     """ """
+class TrackJson(BaseModel):
+    title: str
+    album_id: int = None
+    runtime: int
+    genre: str = None
+    release_date: date
+    artist_ids: list[int]
+    vibe_score: int
 
-#     # null checks
-#     if track.title == None:
-#         raise HTTPException(status_code=404, detail="Title cannot be null.")
 
-#     if track.runtime and track.runtime < 1:
-#         raise HTTPException(
-#             status_code=422, detail="Runtime cannot be null or less than 1."
-#         )
+@router.post("/tracks/", tags=["tracks"])
+def add_track(track: TrackJson):
+    """
+    This endpoint is used to add a new track to the database. The following information is required:
+    * `title`: the title of the track.
+    * `runtime`: the runtime of the track.
+    * `genre`: the genre of the track, or null if unknown.
+    * `release_date`: the release date of the track.
+    * `artist_ids`: a list of artist ids associated with the track.
+    * `vibe_score`: the vibe score of the track
+    """
 
-#     if track.release_date == None:
-#         raise HTTPException(status_code=404, detail="Release year cannot be null.")
+    # null checks for title, runtime, and release_date
+    if track.title == None:
+        raise HTTPException(status_code=404, detail="Title cannot be null.")
 
-#     if track.genre_id == None:
-#         raise HTTPException(status_code=404, detail="Genre cannot be null.")
+    if not track.runtime or track.runtime < 1:
+        raise HTTPException(
+            status_code=422, detail="Runtime cannot be null or less than 1."
+        )
 
-#     check_album_exists_stmt = (
-#         sa.select(db.albums.c.album_id)
-#         .select_from(db.albums)
-#         .where(db.albums.c.album_id == track.album_id)
-#     )
+    if track.release_date == None:
+        raise HTTPException(status_code=404, detail="Release year cannot be null.")
 
-#     check_artist_matches_album_stmt = (
-#         sa.select(db.artists.c.artist_id)
-#         .select_from(db.albums)
-#         .where(db.albums.c.album_id == track.album_id)
-#     )
+    check_stmt = sa.text(
+        """
+        SELECT COUNT(*)
+        FROM artists AS a
+        WHERE a.artist_id IN :artist_ids
+    """
+    )
 
-#     check_genre_exists_stmt = (
-#         sa.select(db.subgenres.c.genre_id)
-#         .select_from(db.subgenres)
-#         .where(db.subgenres.c.genre_id == track.genre_id)
-#     )
+    with db.engine.begin() as conn:
+        result = conn.execute(
+            check_stmt,
+            {"artist_ids": tuple(track.artist_ids)},
+        )
+        count = result.scalar()
 
-#     with db.engine.connect() as conn:
-#         if not (conn.execute(check_album_exists_stmt)):
-#             raise HTTPException(status_code=404, detail="Album not found.")
+        # check if result matches number of artists, this checks album exists as well
+        if count != len(track.artist_ids):
+            raise HTTPException(status_code=404, detail="Album or artist not found.")
 
-#         if track.album_id:
-#             artist_id = conn.execute(check_artist_matches_album_stmt).fetchone()
-#             if artist_id != track.artist_id:
-#                 raise HTTPException(status_code=404, detail="Artist not found.")
+        new_track_stmt = sa.text(
+            """
+            INSERT INTO tracks (title, album_id, runtime, genre, release_date, vibe_score)
+            VALUES (:title, :album_id, :runtime, :genre, :release_date, :vibe_score)
+            RETURNING track_id
+        """
+        )
 
-#         if not (conn.execute(check_genre_exists_stmt)):
-#             raise HTTPException(status_code=404, detail="Genre not found.")
+        result = conn.execute(
+            new_track_stmt,
+            {
+                "title": track.title.lower(),
+                "album_id": track.album_id,
+                "runtime": track.runtime,
+                "genre": track.genre,
+                "release_date": track.release_date,
+                "vibe_score": track.vibe_score,
+            },
+        )
+        track_id = result.scalar()
 
-#         new_track_stmt = sa.insert(db.tracks).values(
-#             {
-#                 "title": track.title.lower(),
-#                 "album_id": track.album_id,
-#                 "runtime": track.runtime,
-#                 "genre_id": track.genre_id,
-#                 "release_date": track.release_date,
-#             }
-#         )
-#         result = conn.execute(new_track_stmt)
-#         conn.commit()
+        # create entries to match artists to track
+        # unnest function iterates through each artist id and adds a row for each
+        new_track_artist_stmt = sa.text(
+            """
+            INSERT INTO track_artist (track_id, artist_id)
+            SELECT :track_id, unnest(:artist_ids)
+        """
+        )
 
-#         for artist_id in track.artist_ids:
-#             new_track_artist_stmt = sa.insert(db.track_artist).values(
-#                 {
-#                     "track_id": result.inserted_primary_key[0],
-#                     "artist_id": artist_id,
-#                 }
-#             )
-#             conn.execute(new_track_artist_stmt)
-#             conn.commit()
+        conn.execute(
+            new_track_artist_stmt,
+            {"track_id": track_id, "artist_ids": track.artist_ids},
+        )
 
-#         return result.inserted_primary_key[0]
+        return track_id

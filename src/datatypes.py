@@ -17,7 +17,7 @@ class Artists(Base):
     name = sa.Column(sa.Text, nullable=False)
     gender = sa.Column(sa.Text, nullable=True)
     deathdate = sa.Column(sa.Date, nullable=True)
-    birthdate = sa.Column(sa.Date, nullable=True)
+    birthdate = sa.Column(sa.Date, nullable=False)
 
 
 class Tracks(Base):
@@ -26,9 +26,9 @@ class Tracks(Base):
     title = sa.Column(sa.Text, nullable=False)
     runtime = sa.Column(sa.Integer, nullable=False)
     genre = sa.Column(sa.Text, nullable=True)
-    album_id = sa.Column(sa.ForeignKey("albums.album_id"), nullable=False)
+    album_id = sa.Column(sa.ForeignKey("albums.album_id"), nullable=True)
     release_date = sa.Column(sa.Date, nullable=False)
-    vibe = sa.Column(sa.Integer, nullable=False)
+    vibe_score = sa.Column(sa.Integer, nullable=False)
 
 
 class Weather(Base):

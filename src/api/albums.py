@@ -32,7 +32,6 @@ def get_album(album_id: int):
     * `album_id`: the internal id of the album.
     * `title`: the title of the album.
     * `release_date`: the release date of the album.
-    * `genre`: the genre id of the album.
     * `artists`: a list of artists associated with the album.
     * `tracks`: a list of tracks associated with the album.
 
@@ -47,100 +46,62 @@ def get_album(album_id: int):
 
     """
 
-    # with db.engine.connect() as conn:
-    #     album = conn.execute(
-    #         sa.select(db.albums).where(db.albums.c.album_id == album_id)
-    #     ).fetchone()
+    # get album, artist, and track information
+    stmt = sa.text(
+        """
+        SELECT 
+            a.album_id, a.title AS album_title, a.release_date, 
+            ar.artist_id, ar.name,
+            t.track_id, t.title AS track_title, t.runtime
+        FROM 
+            albums AS a
+            JOIN album_artist AS aa ON a.album_id = aa.album_id
+            JOIN artists AS ar ON aa.artist_id = ar.artist_id
+            JOIN tracks AS t ON a.album_id = t.album_id
+        WHERE 
+            a.album_id = :album_id
+        """
+    )
 
-    #     if album:
-    #         artists = conn.execute(
-    #             sa.select(db.artists)
-    #             .select_from(db.artists.join(db.album_artist))
-    #             .where(db.album_artist.c.album_id == album_id)
-    #         ).fetchall()
-    #         artists = [a._asdict() for a in artists]
+    with db.engine.begin() as conn:
+        result = conn.execute(stmt, {"album_id": album_id}).fetchall()
+        if not result:
+            raise HTTPException(status_code=404, detail="Album not found.")
 
-    #         tracks = conn.execute(
-    #             sa.select(db.tracks).where(db.tracks.c.album_id == album_id)
-    #         ).fetchall()
-    #         tracks = [t._asdict() for t in tracks]
+        # convert result to list of dictionaries
+        result = [row._asdict() for row in result]
 
-    #         return {
-    #             "album_id": album.album_id,
-    #             "title": album.title,
-    #             "release_date": album.release_date,
-    #             "genre_id": album.genre_id,
-    #             "artists": artists,
-    #             "tracks": tracks,
-    #         }
+        # Create dictionary to represent album for json return
+        album = {
+            "album_id": result[0]["album_id"],
+            "title": result[0]["album_title"],
+            "release_date": result[0]["release_date"],
+            "artists": [],
+            "tracks": [],
+        }
 
-    # raise HTTPException(status_code=404, detail="movie not found.")
+        # add artists and tracks to album
+        for row in result:
+            if {"artist_id": row["artist_id"], "name": row["name"]} not in album[
+                "artists"
+            ]:
+                # add artist to album if not already added
+                album["artists"].append(
+                    {"artist_id": row["artist_id"], "name": row["name"]}
+                )
 
-
-@router.post("/albums/", tags=["albums"])
-def add_album(album: AlbumJson):
-    """
-    This endpoint adds an album to the database
-
-    The endpoint accepts a JSON object with the following fields:
-    - title: string
-    - release_date: date
-    - artists: list[ArtistJson]
-    - tracks: list[TrackJson]
-    - genre_id: int
-
-    Where TrackJson is:
-    - track_id: int
-    - title: string
-    - artists: list[ArtistJson]
-    - runtime: int
-
-    Where ArtistJson is:
-    - artist_id: int
-
-    The endpoint returns the id of the resulting album that was created.
-    """
-
-    with db.engine.connect() as conn:
-        new_album_stmt = sa.insert(db.albums).values(
-            {
-                "title": album.title,
-                "release_date": album.release_date,
-                "genre_id": album.genre_id,
-            }
-        )
-        result = conn.execute(new_album_stmt)
-
-        for track in album.tracks:
-            new_track_stmt = sa.insert(db.tracks).values(
-                {
-                    "title": track.title,
-                    "runtime": track.runtime,
-                    "genre_id": album.genre_id,
-                    "album_id": result.inserted_primary_key[0],
-                    "release_date": album.release_date,
-                }
-            )
-            t_result = conn.execute(new_track_stmt)
-
-            for artist in track.artists:
-                new_track_artist_stmt = sa.insert(db.track_artist).values(
+            if {
+                "track_id": row["track_id"],
+                "title": row["track_title"],
+                "runtime": row["runtime"],
+            } not in album["tracks"]:
+                # add track to album if not already added
+                album["tracks"].append(
                     {
-                        "track_id": t_result.inserted_primary_key[0],
-                        "artist_id": artist.artist_id,
+                        "track_id": row["track_id"],
+                        "title": row["track_title"],
+                        "runtime": row["runtime"],
                     }
                 )
-                conn.execute(new_track_artist_stmt)
 
-        for artist in album.artists:
-            new_album_artist_stmt = sa.insert(db.album_artist).values(
-                {
-                    "album_id": result.inserted_primary_key[0],
-                    "artist_id": artist.artist_id,
-                }
-            )
-            conn.execute(new_album_artist_stmt)
-
-        conn.commit()
-
-        return result.inserted_primary_key[0]
+        return album
