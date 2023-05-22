@@ -60,23 +60,6 @@ def get_album(album_id: int):
     #         ).fetchall()
     #         artists = [a._asdict() for a in artists]
 
-<<<<<<< HEAD
-            tracks = conn.execute(
-                sa.select(db.tracks).where(db.tracks.c.album_id == album_id)
-            ).fetchall()
-            tracks = [t._asdict() for t in tracks]
-
-            return {
-                "album_id": album.album_id,
-                "title": album.title,
-                "release_date": album.release_date,
-                "genre_id": album.genre_id,
-                "artists": artists,
-                "tracks": tracks,
-            }
-        
-    raise HTTPException(status_code=404, detail="album not found.")
-=======
     #         tracks = conn.execute(
     #             sa.select(db.tracks).where(db.tracks.c.album_id == album_id)
     #         ).fetchall()
@@ -161,4 +144,3 @@ def add_album(album: AlbumJson):
         conn.commit()
 
         return result.inserted_primary_key[0]
->>>>>>> cole-v2
