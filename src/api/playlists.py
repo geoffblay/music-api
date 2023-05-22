@@ -62,20 +62,18 @@ def update_playlist(playlist_id: int, playlist: PlaylistJson):
 @router.get("/create/", tags=["playlists"])
 def create(
     location: str = "",
-    time: str = "",
     vibe: str = "",
-    num_tracks: int = 0,
+    num_tracks: int = 10,
 ):
     """
-    This endpoint will create and return an auto-generated playlist based on the user's location, time, and vibe.
-    * `playlist_id`: the internal id of the playlist.
-    * `name`: the name of the playlist.
+    This endpoint will return an auto-generated playlist based on the user's location, time, and vibe.
     * `tracks`: a list of tracks associated with the playlist.
 
     Each track is represented by a dictionary with the following keys:
     * `track_id`: the internal id of the track.
     * `title`: the title of the track.
     * `runtime`: the runtime of the track.
+    * `genre`: the genre of the track.
     * `artists`: a list of artists associated with the track.
 
     Each artist is represented by a dictionary with the following keys:
@@ -83,21 +81,91 @@ def create(
     * `name`: the name of the artist.
 
     You can curate the playlist to your liking by specifying the following parameters:
-    * `location`: specifying location will return tracks that match the current weather in a given location.
+    * `location`: specifying location will return tracks that match the current weather and time in a given location.
     Location must be a valid city, US zip, or lat,long (decimal degree, e.g: 35.2828,120.6596).
-    * `time`: specifying time will return tracks that match the time of day. Time must be in the format HH:MM.
-    * `vibe`: specifying vibe will return tracks that match the vibe of the playlist. Vibe must be one of the following:
-        - chill
+    * `mood`: specifying mood will return tracks that match the vibe of the playlist. Mood must be one of the following:
+        - happy
         - party
         - workout
         - focus
+        - chill
         - sleep
+        - heartbroken
+    * `num_tracks`: specifying num_tracks will return a playlist with the specified number of tracks.
 
     """
+    vals = {}
+
     if location:
         weather_data = weather.get_weather_data(location)
 
-    print(weather_data)
+        vals["temp"] = weather_data["temperature"] * 4
+
+        if (
+            int(weather_data["time"].split(":")[0]) >= 18
+            or int(weather_data["time"].split(":")[0]) <= 6
+        ):
+            time_val = 0
+        else:
+            time_val = 400
+        vals["time"] = time_val
+
+        with db.engine.begin() as conn:
+            sql = """
+            SELECT weather_rating 
+            FROM weather 
+            WHERE weather = :cond
+            """
+            result = conn.execute(
+                sa.text(sql), [{"cond": weather_data["weather"]}]
+            ).fetchone()
+            vals["weather"] = result[0]
+
+    if vibe:
+        if vibe == "happy":
+            vals["mood"] = 343
+        elif vibe == "party":
+            vals["mood"] = 286
+        elif vibe == "workout":
+            vals["mood"] = 229
+        elif vibe == "focus":
+            vals["mood"] = 171
+        elif vibe == "chill":
+            vals["mood"] = 114
+        elif vibe == "sleep":
+            vals["mood"] = 57
+        elif vibe == "heartbroken":
+            vals["mood"] = 0
+
+    avg = sum(vals.values()) / len(vals)
+    print(avg)
+
+    with db.engine.begin() as conn:
+        sql = """
+        SELECT t.track_id, t.title, t.runtime, t.genre, a.artist_id, a.name
+        FROM tracks AS t
+        JOIN track_artist AS ta ON t.track_id = ta.track_id
+        JOIN artists AS a ON ta.artist_id = a.artist_id
+        ORDER BY ABS(:avg - t.vibe)
+        LIMIT :num_tracks
+        """
+        result = conn.execute(
+            sa.text(sql), [{"avg": avg, "num_tracks": num_tracks}]
+        ).fetchall()
+
+        tracks = {}
+        for row in result:
+            if row[0] not in tracks:
+                tracks[row[0]] = {
+                    "title": row[1],
+                    "runtime": row[2],
+                    "genre": row[3],
+                    "artists": [{"artist_id": row[4], "name": row[5]}],
+                }
+            else:
+                tracks[row[0]]["artists"].append({"artist_id": row[4], "name": row[5]})
+
+        return {"tracks": list(tracks.values())}
 
 
 @router.post("/playlists/", tags=["playlists"])
