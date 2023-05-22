@@ -138,7 +138,7 @@ def create(
             vals["mood"] = 0
 
     avg = sum(vals.values()) / len(vals)
-    print(avg)
+    # print(avg)
 
     with db.engine.begin() as conn:
         sql = """
