@@ -5,7 +5,6 @@ import sqlalchemy as sa
 from datetime import date
 from fastapi.params import Query
 
-
 router = APIRouter()
 
 
@@ -24,6 +23,7 @@ def add_user(user: UserJson):
     This endpoint returns the following information:
     * `user_id`: the internal id of the user.
     """
+
     if len(user.password) < 8:
         raise HTTPException(
             status_code=400, detail="Password must be at least 8 characters long."
