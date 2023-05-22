@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from enum import Enum
-from src import database as db
-from fastapi.params import Query
+from src import database as db, weather
 from pydantic import BaseModel
 import sqlalchemy as sa
-from datetime import date
 
 router = APIRouter()
 
@@ -12,6 +10,90 @@ router = APIRouter()
 class PlaylistJson(BaseModel):
     name: str
     track_ids: list[int]
+
+@router.delete("/playlists/{playlist_id}", tags=["playlists"])
+def delete_playlist(playlist_id: int):
+    """
+    This endpoint deletes a playlist by its identifier.
+    """
+    with db.engine.connect() as conn:
+        conn.execute(
+            sa.delete(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+        )
+    return {"message": "Playlist deleted."}
+
+# TODO: Make a better system for adding and deleting tracks from playlist
+
+@router.put("/playlists/{playlist_id}", tags=["playlists"])
+def update_playlist(playlist_id: int, playlist: PlaylistJson):
+    """
+    This endpoint updates a playlist by its identifier.
+
+    The endpoint accepts a JSON object with the following fields:
+    - title: string
+    - track_ids: a list of track_ids for the playlist
+    """
+    with db.engine.connect() as conn:
+        conn.execute(
+            sa.update(db.playlists)
+            .where(db.playlists.c.playlist_id == playlist_id)
+            .values({"name": playlist.name})
+        )
+
+        conn.execute(
+            sa.delete(db.playlist_track).where(
+                db.playlist_track.c.playlist_id == playlist_id
+            )
+        )
+
+        for track in playlist.track_ids:
+            conn.execute(
+                sa.insert(db.playlist_track).values(
+                    {"playlist_id": playlist_id, "track_id": track}
+                )
+            )
+
+    return {"message": "Playlist updated."}
+
+@router.get("/create/", tags=["playlists"])
+def create(
+    location: str="",
+    time: str="",
+    vibe: str="",
+    num_tracks: int=0,
+):
+    """
+    This endpoint will create and return an auto-generated playlist based on the user's location, time, and vibe.
+    * `playlist_id`: the internal id of the playlist.
+    * `name`: the name of the playlist.
+    * `tracks`: a list of tracks associated with the playlist.
+
+    Each track is represented by a dictionary with the following keys:
+    * `track_id`: the internal id of the track.
+    * `title`: the title of the track.
+    * `runtime`: the runtime of the track.
+    * `artists`: a list of artists associated with the track.
+
+    Each artist is represented by a dictionary with the following keys:
+    * `artist_id`: the internal id of the artist.
+    * `name`: the name of the artist.
+
+    You can curate the playlist to your liking by specifying the following parameters:
+    * `location`: specifying location will return tracks that match the current weather in a given location. 
+    Location must be a valid city, US zip, or lat,long (decimal degree, e.g: 35.2828,120.6596).
+    * `time`: specifying time will return tracks that match the time of day. Time must be in the format HH:MM.
+    * `vibe`: specifying vibe will return tracks that match the vibe of the playlist. Vibe must be one of the following:
+        - chill
+        - party
+        - workout
+        - focus
+        - sleep
+    
+    """
+    if location:
+        weather_data = weather.get_weather_data(location)
+    
+    print(weather_data)
 
 
 @router.post("/playlists/", tags=["playlists"])
