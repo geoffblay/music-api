@@ -1,8 +1,8 @@
-"""updating weather table, adding column
+"""update dev
 
-Revision ID: f397ba66c1eb
+Revision ID: b343a2995780
 Revises: 
-Create Date: 2023-05-21 21:22:08.813042
+Create Date: 2023-05-21 21:30:54.770210
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f397ba66c1eb'
+revision = 'b343a2995780'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,6 +40,7 @@ def upgrade() -> None:
     op.create_table('vibe',
     sa.Column('vibe_id', sa.Integer(), nullable=False),
     sa.Column('vibe', sa.Text(), nullable=False),
+    sa.Column('test', sa.Text(), nullable=False),
     sa.PrimaryKeyConstraint('vibe_id')
     )
     op.create_table('weather',
