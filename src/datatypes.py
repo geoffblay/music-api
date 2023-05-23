@@ -17,7 +17,7 @@ class Artists(Base):
     name = sa.Column(sa.Text, nullable=False)
     gender = sa.Column(sa.Text, nullable=True)
     deathdate = sa.Column(sa.Date, nullable=True)
-    birthdate = sa.Column(sa.Date, nullable=False)
+    birthdate = sa.Column(sa.Date, nullable=True)
 
 
 class Tracks(Base):

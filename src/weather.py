@@ -13,6 +13,10 @@ def get_weather_data(city) -> dict:
     result = requests.get(
         f"http://api.weatherapi.com/v1/current.json?key={get_api_key()}&q={city}"
     )
+
+    if "error" in result.json():
+        return {"error": result.json()["error"]["message"]}
+
     json = {
         "location": result.json()["location"]["name"],
         "temperature": result.json()["current"]["temp_f"],
@@ -21,6 +25,3 @@ def get_weather_data(city) -> dict:
         "time": result.json()["location"]["localtime"][11:],
     }
     return json
-
-
-# print(get_weather_data("San Luis Obispo"))
