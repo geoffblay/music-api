@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import artists, tracks, albums, playlists, users
+from src.api import artists, tracks, albums, playlists, users, search
 
 
 description = """
@@ -26,6 +26,10 @@ tags_metadata = [
         "name": "users",
         "descritpion": "Add users to the database.",
     },
+    {
+        "name": "search",
+        "description": "Search for artists, albums, and tracks.",
+    }
 ]
 
 app = FastAPI(
@@ -46,6 +50,7 @@ app.include_router(albums.router)
 app.include_router(playlists.router)
 app.include_router(tracks.router)
 app.include_router(users.router)
+app.include_router(search.router)
 
 
 @app.get("/")
