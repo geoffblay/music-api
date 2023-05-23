@@ -41,6 +41,7 @@ album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engi
 weather = sqlalchemy.Table("weather", metadata_obj, autoload_with=engine)
 users = sqlalchemy.Table("users", metadata_obj, autoload_with=engine)
 
+
 def try_parse(type, val):
     try:
         return type(val)
