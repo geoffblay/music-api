@@ -38,12 +38,6 @@ class Weather(Base):
     weather_rating = sa.Column(sa.Integer, nullable=False)
 
 
-class Vibe(Base):
-    __tablename__ = "vibe"
-    vibe_id = sa.Column(sa.Integer, primary_key=True)
-    vibe = sa.Column(sa.Text, nullable=False)
-
-
 class Playlists(Base):
     __tablename__ = "playlists"
     playlist_id = sa.Column(sa.Integer, primary_key=True)
@@ -54,7 +48,9 @@ class Playlists(Base):
 class Playlist_Track(Base):
     __tablename__ = "playlist_track"
     playlist_track_id = sa.Column(sa.Integer, primary_key=True)
-    playlist_id = sa.Column(sa.ForeignKey("playlists.playlist_id"), nullable=False)
+    playlist_id = sa.Column(
+        sa.ForeignKey("playlists.playlist_id", ondelete="CASCADE"), nullable=False
+    )
     track_id = sa.Column(sa.ForeignKey("tracks.track_id"), nullable=False)
 
 
