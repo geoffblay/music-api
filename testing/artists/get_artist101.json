@@ -1,0 +1,186 @@
+{
+    "artist_id": 101,
+    "name": "Erika Mcclain",
+    "birthdate": "1997-12-30",
+    "deathdate": "1930-11-15",
+    "gender": "Male",
+    "tracks": [
+        {
+            "track_id": 10001,
+            "title": "Huge up.",
+            "release_date": "2023-01-07"
+        },
+        {
+            "track_id": 10002,
+            "title": "Once summer resource.",
+            "release_date": "2022-01-07"
+        },
+        {
+            "track_id": 10003,
+            "title": "General candidate certain.",
+            "release_date": "2022-01-11"
+        },
+        {
+            "track_id": 10004,
+            "title": "Education local.",
+            "release_date": "2022-12-20"
+        },
+        {
+            "track_id": 10005,
+            "title": "Enter fear seek.",
+            "release_date": "2021-12-20"
+        },
+        {
+            "track_id": 10006,
+            "title": "Nothing century tough.",
+            "release_date": "2021-10-20"
+        },
+        {
+            "track_id": 10007,
+            "title": "Understand provide few.",
+            "release_date": "2022-07-20"
+        },
+        {
+            "track_id": 10008,
+            "title": "Medical cultural.",
+            "release_date": "2022-12-03"
+        },
+        {
+            "track_id": 10009,
+            "title": "Ground nation.",
+            "release_date": "2021-03-21"
+        },
+        {
+            "track_id": 10010,
+            "title": "Start nature.",
+            "release_date": "2021-03-07"
+        },
+        {
+            "track_id": 10011,
+            "title": "Nothing process.",
+            "release_date": "2020-07-06"
+        },
+        {
+            "track_id": 10012,
+            "title": "Mission school.",
+            "release_date": "2020-05-26"
+        },
+        {
+            "track_id": 10013,
+            "title": "Alone human sport.",
+            "release_date": "2020-09-30"
+        },
+        {
+            "track_id": 10014,
+            "title": "New realize.",
+            "release_date": "2018-11-02"
+        },
+        {
+            "track_id": 10015,
+            "title": "Test though speech.",
+            "release_date": "2017-07-12"
+        },
+        {
+            "track_id": 10016,
+            "title": "It voice.",
+            "release_date": "2023-03-31"
+        },
+        {
+            "track_id": 10017,
+            "title": "Hot choose beautiful.",
+            "release_date": "2016-02-09"
+        },
+        {
+            "track_id": 10018,
+            "title": "Make reach her.",
+            "release_date": "2018-08-22"
+        },
+        {
+            "track_id": 10019,
+            "title": "Common next.",
+            "release_date": "2018-08-17"
+        },
+        {
+            "track_id": 10020,
+            "title": "Whom security.",
+            "release_date": "2023-02-16"
+        },
+        {
+            "track_id": 10021,
+            "title": "Who suddenly sound.",
+            "release_date": "2022-07-01"
+        },
+        {
+            "track_id": 10022,
+            "title": "Term within.",
+            "release_date": "2021-11-10"
+        },
+        {
+            "track_id": 10023,
+            "title": "Parent difference sure.",
+            "release_date": "2021-07-04"
+        },
+        {
+            "track_id": 10024,
+            "title": "Someone eye church.",
+            "release_date": "2021-01-25"
+        },
+        {
+            "track_id": 10025,
+            "title": "Protect reduce plant.",
+            "release_date": "2020-11-19"
+        },
+        {
+            "track_id": 10026,
+            "title": "Tend.",
+            "release_date": "2020-04-25"
+        },
+        {
+            "track_id": 10027,
+            "title": "Baby ability street.",
+            "release_date": "2014-12-05"
+        },
+        {
+            "track_id": 10028,
+            "title": "Must try part.",
+            "release_date": "2015-10-27"
+        },
+        {
+            "track_id": 10029,
+            "title": "Behavior front street present.",
+            "release_date": "2021-07-17"
+        },
+        {
+            "track_id": 10030,
+            "title": "Phone total cover.",
+            "release_date": "2020-10-19"
+        }
+    ],
+    "albums": [
+        {
+            "album_id": 1001,
+            "title": "Test police person sound.",
+            "release_date": "2021-09-13"
+        },
+        {
+            "album_id": 1002,
+            "title": "Effect already book shoulder.",
+            "release_date": "2019-11-23"
+        },
+        {
+            "album_id": 1003,
+            "title": "Through television imagine majority effort.",
+            "release_date": "2015-08-27"
+        },
+        {
+            "album_id": 1004,
+            "title": "Choose consumer usually.",
+            "release_date": "2017-12-30"
+        },
+        {
+            "album_id": 1005,
+            "title": "Religious particular crime figure military his.",
+            "release_date": "2014-04-18"
+        }
+    ]
+}
