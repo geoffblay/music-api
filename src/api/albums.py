@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from src import database as db
+from src import database as db, weather
 from pydantic import BaseModel
 import sqlalchemy as sa
 from datetime import date
@@ -116,11 +116,42 @@ def recommend(
     * `track_id`: the internal id of the track.
     * `title`: the title of the track.
     * `runtime`: the runtime of the track.
+
+    You can curate the album recommendations by providing the following parameters:
+    * `location`: specifying location will return tracks that match the current weather and time in a given location. Location must be a valid city, US zip, or lat,long (decimal degree, e.g: 35.2828,120.6596).
+    * `mood`: specifying mood will return an album that match the vibe. Mood must be one of the following:
+        - happy
+        - party
+        - workout
+        - focus
+        - chill
+        - sleep
+        - heartbroken
+    * `num_tracks`: specifying num_tracks will return an album close to the specified number of tracks.
     """
+
+    if not db.try_parse(int, num_tracks):
+        raise HTTPException(
+            status_code=422,
+            detail="Number of tracks must be an integer.",
+        )
+
     vals = {}
 
     if location:
-        weather_data = db.weather.get_weather_data(location)
+        if not db.try_parse(str, location):
+            raise HTTPException(
+                status_code=422,
+                detail="Location must be a string.",
+            )
+
+        weather_data = weather.get_weather_data(location)
+
+        if 'error' in weather_data:
+            raise HTTPException(
+                status_code=422,
+                detail=weather_data["error"],
+            )
 
         vals["temp"] = weather_data["temperature"] * 4
 
@@ -139,12 +170,21 @@ def recommend(
             FROM weather 
             WHERE weather = :cond
             """
+
+            print(weather_data['weather'])
             result = conn.execute(
                 sa.text(sql), [{"cond": weather_data["weather"]}]
             ).fetchone()
+            print(result)
             vals["weather"] = result[0]
 
     if vibe:
+        if not db.try_parse(str, vibe):
+            raise HTTPException(
+                status_code=422,
+                detail="Vibe must be a string.",
+            )
+
         if vibe == "happy":
             vals["mood"] = 343
         elif vibe == "party":
@@ -159,6 +199,17 @@ def recommend(
             vals["mood"] = 57
         elif vibe == "heartbroken":
             vals["mood"] = 0
+        else:
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid vibe.",
+            )
+        
+    if num_tracks < 1:
+        raise HTTPException(
+            status_code=422,
+            detail="Number of tracks must be greater than 0.",
+        )
 
     avg = sum(vals.values()) / len(vals)
 
@@ -172,7 +223,7 @@ def recommend(
         FROM albums
         JOIN tracks ON tracks.album_id = albums.album_id
         GROUP BY albums.album_id
-        ORDER BY ABS(:avg - AVG(tracks.vibe)), ABS(:num_tracks - COUNT(tracks.track_id))
+        ORDER BY ABS(:avg - AVG(tracks.vibe_score)), ABS(:num_tracks - COUNT(tracks.track_id))
         LIMIT 1
         ) AS t1 ON t1.album_id = tracks.album_id
         """
