@@ -10,7 +10,7 @@ fake = Faker()
 def seed_db(engine):
     # start a new connection
     with engine.begin() as connection:
-        for _ in range(50):  # Create 100 artists
+        for _ in range(50):  # Create 50 artists
             artist_data = {
                 "name": fake.name(),
                 "gender": fake.random_element(elements=("Male", "Female")),
