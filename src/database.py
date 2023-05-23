@@ -39,7 +39,6 @@ track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=engi
 playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=engine)
 album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
 weather = sqlalchemy.Table("weather", metadata_obj, autoload_with=engine)
-vibe = sqlalchemy.Table("vibe", metadata_obj, autoload_with=engine)
 users = sqlalchemy.Table("users", metadata_obj, autoload_with=engine)
 
 def try_parse(type, val):
