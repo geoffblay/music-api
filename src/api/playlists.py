@@ -99,6 +99,12 @@ def create(
     if location:
         weather_data = weather.get_weather_data(location)
 
+        if weather_data["error"]:
+            raise HTTPException(
+                status_code=400,
+                detail=weather_data["error"],
+            )
+
         vals["temp"] = weather_data["temperature"] * 4
 
         if (
@@ -136,6 +142,17 @@ def create(
             vals["mood"] = 57
         elif vibe == "heartbroken":
             vals["mood"] = 0
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid vibe.",
+            )
+        
+    if num_tracks < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Number of tracks must be greater than 0.",
+        )
 
     avg = sum(vals.values()) / len(vals)
     print(avg)
