@@ -4,6 +4,8 @@ from sqlalchemy import insert
 
 fake = Faker()
 
+# this is used to automatically generate fake data for the local database
+
 
 def seed_db(engine):
     # start a new connection
