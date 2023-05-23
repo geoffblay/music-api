@@ -87,15 +87,15 @@ def add_track(track: TrackJson):
     if not db.try_parse(str, track.title) or track.title == None:
         raise HTTPException(status_code=404, detail="Title cannot be null.")
 
-    if not db.try_parse(track.runtime) or track.runtime < 1:
+    if not db.try_parse(int, track.runtime) or track.runtime < 1:
         raise HTTPException(
             status_code=422, detail="Runtime cannot be null or less than 1."
         )
 
-    if track.genre and not db.try_parse(str, track.genre):
+    if not track.genre or not db.try_parse(str, track.genre):
         raise HTTPException(status_code=404, detail="Genre must be a string.")
 
-    if not db.try_parse(date, track.release_date) or track.release_date == None:
+    if track.release_date == None:
         raise HTTPException(status_code=404, detail="Release year cannot be null.")
 
     if not db.try_parse(int, track.vibe_score) or (
@@ -105,7 +105,7 @@ def add_track(track: TrackJson):
             status_code=422, detail="Vibe score must be an integer between 1 and 400."
         )
 
-    check_stmt = sa.text(
+    check_artist_stmt = sa.text(
         """
         SELECT COUNT(*)
         FROM artists AS a
@@ -113,16 +113,30 @@ def add_track(track: TrackJson):
     """
     )
 
+    check_album_stmt = sa.text(
+        """
+        SELECT COUNT(*)
+        FROM albums AS a
+        WHERE a.album_id = :album_id
+        """
+    )
+
     with db.engine.begin() as conn:
         result = conn.execute(
-            check_stmt,
+            check_artist_stmt,
             {"artist_ids": tuple(track.artist_ids)},
         )
         count = result.scalar()
 
         # check if result matches number of artists, this checks album exists as well
         if count != len(track.artist_ids):
-            raise HTTPException(status_code=404, detail="Album or artist not found.")
+            raise HTTPException(
+                status_code=404, detail="One or more artists not found."
+            )
+
+        result = conn.execute(check_album_stmt, {"album_id": track.album_id})
+        if result.scalar() == 0 and track.album_id != None:
+            raise HTTPException(status_code=404, detail="Album not found.")
 
         new_track_stmt = sa.text(
             """
@@ -144,32 +158,6 @@ def add_track(track: TrackJson):
             },
         )
         track_id = result.scalar()
-
-        # if album_id is provided, create an entry in album_track
-        if track.album_id:
-            check_album_stmt = sa.text(
-                """
-                SELECT COUNT(*)
-                FROM albums
-                WHERE album_id = :album_id
-                """
-            )
-            result = conn.execute(check_album_stmt, {"album_id": track.album_id})
-            count = result.scalar()
-
-            if count != 1:
-                raise HTTPException(status_code=404, detail="Album not found.")
-
-            new_album_track_stmt = sa.text(
-                """
-                INSERT INTO album_track (album_id, track_id)
-                VALUES (:album_id, :track_id)
-                """
-            )
-            conn.execute(
-                new_album_track_stmt,
-                {"album_id": track.album_id, "track_id": track_id},
-            )
 
         # create entries to match artists to track
         # unnest function iterates through each artist id and adds a row for each
