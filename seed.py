@@ -1,6 +1,4 @@
-from sqlalchemy.orm import Session
 import src.database as db
-from src.datatypes import Albums, Artists, Tracks, Album_Artist, Track_Artist
 from faker import Faker
 from sqlalchemy import insert
 
