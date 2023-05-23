@@ -18,7 +18,7 @@ def delete_playlist(playlist_id: int):
     This endpoint deletes a playlist by its identifier.
     """
     if not db.try_parse(int, playlist_id):
-        raise HTTPException(status_code=404, detail="Playlist ID must be an integer")
+        raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     with db.engine.begin() as conn:
         conn.execute(
@@ -33,10 +33,10 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
     This endpoint deletes a track from a playlist by its identifier.
     """
     if not db.try_parse(int, playlist_id):
-        raise HTTPException(status_code=404, detail="Playlist ID must be an integer")
+        raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     if not db.try_parse(int, track_id):
-        raise HTTPException(status_code=404, detail="Track ID must be an integer")
+        raise HTTPException(status_code=422, detail="Track ID must be an integer")
 
 
     with db.engine.begin() as conn:
@@ -45,7 +45,7 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
         ).first()
         if not playlist:
             raise HTTPException(
-                status_code=404, detail=f"Playlist {playlist_id} not found"
+                status_code=422, detail=f"Playlist {playlist_id} not found"
             )
         
         track = conn.execute(
@@ -53,7 +53,7 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
         ).first()
         if not track:
             raise HTTPException(
-                status_code=404, detail=f"Track {track_id} not found"
+                status_code=422, detail=f"Track {track_id} not found"
             )
 
         conn.execute(
@@ -105,7 +105,7 @@ def create(
     
     if not db.try_parse(int, num_tracks):
         raise HTTPException(
-            status_code=400,
+            status_code=422,
             detail="Number of tracks must be an integer.",
         )
 
@@ -114,7 +114,7 @@ def create(
     if location:
         if not db.try_parse(str, location):
             raise HTTPException(
-                status_code=400,
+                status_code=422,
                 detail="Location must be a string.",
             )
 
@@ -122,7 +122,7 @@ def create(
 
         if 'error' in weather_data:
             raise HTTPException(
-                status_code=400,
+                status_code=422,
                 detail=weather_data["error"],
             )
 
@@ -154,7 +154,7 @@ def create(
     if vibe:
         if not db.try_parse(str, vibe):
             raise HTTPException(
-                status_code=400,
+                status_code=422,
                 detail="Vibe must be a string.",
             )
 
@@ -174,13 +174,13 @@ def create(
             vals["mood"] = 0
         else:
             raise HTTPException(
-                status_code=400,
+                status_code=422,
                 detail="Invalid vibe.",
             )
         
     if num_tracks < 1:
         raise HTTPException(
-            status_code=400,
+            status_code=422,
             detail="Number of tracks must be greater than 0.",
         )
 
@@ -227,10 +227,11 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
     """
 
     if not db.try_parse(int, playlist_id):
-        raise HTTPException(status_code=404, detail="Playlist ID must be an integer")
+        print('dsfojdsf')
+        raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     if not db.try_parse(int, track_id):
-        raise HTTPException(status_code=404, detail="Track ID must be an integer")
+        raise HTTPException(status_code=422, detail="Track ID must be an integer")
 
     with db.engine.begin() as conn:
         playlist = conn.execute(
@@ -238,7 +239,7 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
         ).first()
         if not playlist:
             raise HTTPException(
-                status_code=404, detail=f"Playlist {playlist_id} not found"
+                status_code=422, detail=f"Playlist {playlist_id} not found"
             )
 
         track = conn.execute(
@@ -246,7 +247,7 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
         ).first()
         if not track:
             raise HTTPException(
-                status_code=404, detail=f"Track {track_id} not found"
+                status_code=422, detail=f"Track {track_id} not found"
             )
 
         new_playlist_track_stmt = sa.insert(db.playlist_track).values(
@@ -333,4 +334,4 @@ def get_playlist(playlist_id: int):
             playlist["tracks"] = tracks
             return playlist
         else:
-            raise HTTPException(status_code=404, detail="Playlist not found")
+            raise HTTPException(status_code=422, detail="Playlist not found")

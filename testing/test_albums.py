@@ -11,5 +11,5 @@ def test_get_album_fail():
 
 
 def test_get_album_fail2():
-    response = client.get("/albums/5")
+    response = client.get("/albums/-1")
     assert response.status_code == 404
