@@ -233,7 +233,6 @@ def recommend(
 
         album_id = result1[0][0]
         # genre = max(result1[0][4], key=result1[0][4])
-        # print(genre)
 
         tracks = [{"track_id": t[3], "title": t[4], "runtime": t[5]} for t in result1]
 
