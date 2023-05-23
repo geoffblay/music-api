@@ -16,8 +16,8 @@ class UserJson(BaseModel):
 def add_user(user: UserJson):
     """
     This endpoint adds a user to the database. The following information is required:
-    * `username`: the username of the user.
-    * `password`: the password of the user.
+    * `username`: the username of the user - must be larger than four characters.
+    * `password`: the password of the user - must be larger than eight characters.
 
     This endpoint returns the following information:
     * `user_id`: the internal id of the user.
