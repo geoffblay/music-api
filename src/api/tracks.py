@@ -85,7 +85,7 @@ def add_track(track: TrackJson):
     """
     # null and type checks
     if not db.try_parse(str, track.title) or track.title == None:
-        raise HTTPException(status_code=404, detail="Title cannot be null.")
+        raise HTTPException(status_code=422, detail="Title cannot be null.")
 
     if not db.try_parse(int, track.runtime) or track.runtime < 1:
         raise HTTPException(
@@ -93,10 +93,10 @@ def add_track(track: TrackJson):
         )
 
     if not track.genre or not db.try_parse(str, track.genre):
-        raise HTTPException(status_code=404, detail="Genre must be a string.")
+        raise HTTPException(status_code=422, detail="Genre must be a string.")
 
     if track.release_date == None:
-        raise HTTPException(status_code=404, detail="Release year cannot be null.")
+        raise HTTPException(status_code=422, detail="Release year cannot be null.")
 
     if not db.try_parse(int, track.vibe_score) or (
         track.vibe_score < 1 or track.vibe_score > 400

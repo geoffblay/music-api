@@ -1,28 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from src import database as db, weather
+from src import database as db
 from pydantic import BaseModel
 import sqlalchemy as sa
 from datetime import date
 
 router = APIRouter()
-
-
-class ArtistJson(BaseModel):
-    artist_id: int
-
-
-class TrackJson(BaseModel):
-    title: str
-    artists: list[ArtistJson]
-    runtime: int
-
-
-class AlbumJson(BaseModel):
-    title: str
-    release_date: date
-    artists: list[ArtistJson]
-    tracks: list[TrackJson]
-    genre_id: int
 
 
 @router.get("/albums/{album_id}", tags=["albums"])
@@ -45,6 +27,9 @@ def get_album(album_id: int):
     * `runtime`: the runtime of the track.
 
     """
+
+    if not db.try_parse(int, album_id):
+        raise HTTPException(status_code=422, detail="Album ID must be an integer.")
 
     # get album, artist, and track information
     stmt = sa.text(
@@ -135,7 +120,7 @@ def recommend(
     vals = {}
 
     if location:
-        weather_data = weather.get_weather_data(location)
+        weather_data = db.weather.get_weather_data(location)
 
         vals["temp"] = weather_data["temperature"] * 4
 
