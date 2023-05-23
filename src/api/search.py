@@ -130,3 +130,5 @@ def search(type: str='tracks',
             
             else:
                 raise HTTPException(status_code=422, detail="No artists found.")
+    else:
+        raise HTTPException(status_code=422, detail="Invalid type. Must be one of 'tracks', 'albums', or 'artists'.")
