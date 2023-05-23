@@ -1,7 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from enum import Enum
 from src import database as db
-from fastapi.params import Query
 from pydantic import BaseModel
 from datetime import date
 import sqlalchemy as sa
@@ -85,20 +83,29 @@ def add_track(track: TrackJson):
     * `artist_ids`: a list of artist ids associated with the track.
     * `vibe_score`: the vibe score of the track
     """
+    # null and type checks
+    if not db.try_parse(str, track.title) or track.title == None:
+        raise HTTPException(status_code=422, detail="Title cannot be null.")
 
-    # null checks for title, runtime, and release_date
-    if track.title == None:
-        raise HTTPException(status_code=404, detail="Title cannot be null.")
-
-    if not track.runtime or track.runtime < 1:
+    if not db.try_parse(int, track.runtime) or track.runtime < 1:
         raise HTTPException(
             status_code=422, detail="Runtime cannot be null or less than 1."
         )
 
-    if track.release_date == None:
-        raise HTTPException(status_code=404, detail="Release year cannot be null.")
+    if not track.genre or not db.try_parse(str, track.genre):
+        raise HTTPException(status_code=422, detail="Genre must be a string.")
 
-    check_stmt = sa.text(
+    if track.release_date == None:
+        raise HTTPException(status_code=422, detail="Release year cannot be null.")
+
+    if not db.try_parse(int, track.vibe_score) or (
+        track.vibe_score < 1 or track.vibe_score > 400
+    ):
+        raise HTTPException(
+            status_code=422, detail="Vibe score must be an integer between 1 and 400."
+        )
+
+    check_artist_stmt = sa.text(
         """
         SELECT COUNT(*)
         FROM artists AS a
@@ -106,16 +113,30 @@ def add_track(track: TrackJson):
     """
     )
 
+    check_album_stmt = sa.text(
+        """
+        SELECT COUNT(*)
+        FROM albums AS a
+        WHERE a.album_id = :album_id
+        """
+    )
+
     with db.engine.begin() as conn:
         result = conn.execute(
-            check_stmt,
+            check_artist_stmt,
             {"artist_ids": tuple(track.artist_ids)},
         )
         count = result.scalar()
 
         # check if result matches number of artists, this checks album exists as well
         if count != len(track.artist_ids):
-            raise HTTPException(status_code=404, detail="Album or artist not found.")
+            raise HTTPException(
+                status_code=404, detail="One or more artists not found."
+            )
+
+        result = conn.execute(check_album_stmt, {"album_id": track.album_id})
+        if result.scalar() == 0 and track.album_id != None:
+            raise HTTPException(status_code=404, detail="Album not found.")
 
         new_track_stmt = sa.text(
             """

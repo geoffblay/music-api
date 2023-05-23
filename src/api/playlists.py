@@ -17,46 +17,54 @@ def delete_playlist(playlist_id: int):
     """
     This endpoint deletes a playlist by its identifier.
     """
-    with db.engine.connect() as conn:
+    if not db.try_parse(int, playlist_id):
+        raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
+
+    with db.engine.begin() as conn:
         conn.execute(
             sa.delete(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
         )
     return {"message": "Playlist deleted."}
 
 
-# TODO: Make a better system for adding and deleting tracks from playlist
-
-
-@router.put("/playlists/{playlist_id}", tags=["playlists"])
-def update_playlist(playlist_id: int, playlist: PlaylistJson):
+@router.delete("/playlists/{playlist_id}/tracks/{track_id}", tags=["playlists"])
+def delete_track_from_playlist(playlist_id: int, track_id: int):
     """
-    This endpoint updates a playlist by its identifier.
-
-    The endpoint accepts a JSON object with the following fields:
-    - title: string
-    - track_ids: a list of track_ids for the playlist
+    This endpoint deletes a track from a playlist by its identifier.
     """
-    with db.engine.connect() as conn:
-        conn.execute(
-            sa.update(db.playlists)
-            .where(db.playlists.c.playlist_id == playlist_id)
-            .values({"name": playlist.name})
-        )
+    if not db.try_parse(int, playlist_id):
+        raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
+
+    if not db.try_parse(int, track_id):
+        raise HTTPException(status_code=422, detail="Track ID must be an integer")
+
+
+    with db.engine.begin() as conn:
+        playlist = conn.execute(
+            sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+        ).first()
+        if not playlist:
+            raise HTTPException(
+                status_code=422, detail=f"Playlist {playlist_id} not found"
+            )
+        
+        track = conn.execute(
+            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
+        ).first()
+        if not track:
+            raise HTTPException(
+                status_code=422, detail=f"Track {track_id} not found"
+            )
 
         conn.execute(
             sa.delete(db.playlist_track).where(
-                db.playlist_track.c.playlist_id == playlist_id
-            )
-        )
-
-        for track in playlist.track_ids:
-            conn.execute(
-                sa.insert(db.playlist_track).values(
-                    {"playlist_id": playlist_id, "track_id": track}
+                sa.and_(
+                    db.playlist_track.c.playlist_id == playlist_id,
+                    db.playlist_track.c.track_id == track_id
                 )
             )
-
-    return {"message": "Playlist updated."}
+        )
+    return {"message": f"Track {track_id} deleted from playlist {playlist_id}."}
 
 
 @router.get("/create/", tags=["playlists"])
@@ -94,10 +102,29 @@ def create(
     * `num_tracks`: specifying num_tracks will return a playlist with the specified number of tracks.
 
     """
+    
+    if not db.try_parse(int, num_tracks):
+        raise HTTPException(
+            status_code=422,
+            detail="Number of tracks must be an integer.",
+        )
+
     vals = {}
 
     if location:
+        if not db.try_parse(str, location):
+            raise HTTPException(
+                status_code=422,
+                detail="Location must be a string.",
+            )
+
         weather_data = weather.get_weather_data(location)
+
+        if 'error' in weather_data:
+            raise HTTPException(
+                status_code=422,
+                detail=weather_data["error"],
+            )
 
         vals["temp"] = weather_data["temperature"] * 4
 
@@ -116,12 +143,21 @@ def create(
             FROM weather 
             WHERE weather = :cond
             """
+
+            print(weather_data['weather'])
             result = conn.execute(
                 sa.text(sql), [{"cond": weather_data["weather"]}]
             ).fetchone()
+            print(result)
             vals["weather"] = result[0]
 
     if vibe:
+        if not db.try_parse(str, vibe):
+            raise HTTPException(
+                status_code=422,
+                detail="Vibe must be a string.",
+            )
+
         if vibe == "happy":
             vals["mood"] = 343
         elif vibe == "party":
@@ -136,6 +172,17 @@ def create(
             vals["mood"] = 57
         elif vibe == "heartbroken":
             vals["mood"] = 0
+        else:
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid vibe.",
+            )
+        
+    if num_tracks < 1:
+        raise HTTPException(
+            status_code=422,
+            detail="Number of tracks must be greater than 0.",
+        )
 
     avg = sum(vals.values()) / len(vals)
     print(avg)
@@ -146,7 +193,7 @@ def create(
         FROM tracks AS t
         JOIN track_artist AS ta ON t.track_id = ta.track_id
         JOIN artists AS a ON ta.artist_id = a.artist_id
-        ORDER BY ABS(:avg - t.vibe)
+        ORDER BY ABS(:avg - t.vibe_score)
         LIMIT :num_tracks
         """
         result = conn.execute(
@@ -167,6 +214,51 @@ def create(
 
         return {"tracks": list(tracks.values())}
 
+@router.put("/playlists/{playlist_id}/track/{track_id}", tags=["playlists"])
+def add_track_to_playlist(playlist_id: int, track_id: int):
+    """
+    This endpoint adds a track to a playlist
+
+    The endpoint accepts a JSON object with the following fields:
+    * `playlist_id`: the id of the playlist
+    * `track_id`: the id of the track
+
+    The endpoint returns the id of the resulting playlist that was created.
+    """
+
+    if not db.try_parse(int, playlist_id):
+        print('dsfojdsf')
+        raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
+
+    if not db.try_parse(int, track_id):
+        raise HTTPException(status_code=422, detail="Track ID must be an integer")
+
+    with db.engine.begin() as conn:
+        playlist = conn.execute(
+            sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+        ).first()
+        if not playlist:
+            raise HTTPException(
+                status_code=422, detail=f"Playlist {playlist_id} not found"
+            )
+
+        track = conn.execute(
+            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
+        ).first()
+        if not track:
+            raise HTTPException(
+                status_code=422, detail=f"Track {track_id} not found"
+            )
+
+        new_playlist_track_stmt = sa.insert(db.playlist_track).values(
+            {
+                "playlist_id": playlist_id,
+                "track_id": track_id,
+            }
+        )
+        conn.execute(new_playlist_track_stmt)
+
+    return {"message": f"Track {track_id} added to playlist {playlist_id}."}
 
 @router.post("/playlists/", tags=["playlists"])
 def add_playlist(playlist: PlaylistJson):
@@ -242,4 +334,4 @@ def get_playlist(playlist_id: int):
             playlist["tracks"] = tracks
             return playlist
         else:
-            raise HTTPException(status_code=404, detail="Playlist not found")
+            raise HTTPException(status_code=422, detail="Playlist not found")

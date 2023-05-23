@@ -16,16 +16,29 @@ class UserJson(BaseModel):
 def add_user(user: UserJson):
     """
     This endpoint adds a user to the database. The following information is required:
-    * `username`: the username of the user.
-    * `password`: the password of the user.
+    * `username`: the username of the user - must be larger than four characters.
+    * `password`: the password of the user - must be larger than eight characters.
 
     This endpoint returns the following information:
     * `user_id`: the internal id of the user.
     """
 
-    if len(user.password) < 8:
+    if not db.try_parse(str, user.username):
+        raise HTTPException(status_code=422, detail="Username input is invalid.")
+
+    if not db.try_parse(str, user.password):
+        raise HTTPException(status_code=422, detail="Password input is invalid.")
+
+    if len(user.password) < 8 or len(user.password) > 72:
         raise HTTPException(
-            status_code=400, detail="Password must be at least 8 characters long."
+            status_code=422,
+            detail="Password must be at least 8 characters long and less than 72 characters long.",
+        )
+
+    if len(user.username) < 4 or len(user.username) > 32:
+        raise HTTPException(
+            status_code=422,
+            detail="Username must be at least 4 characters long and less than 32 characters long.",
         )
 
     # set username to lowercase
@@ -69,6 +82,12 @@ def validate_user(user: UserJson):
 
     This endpoint returns True if the user is valid.
     """
+
+    if not db.try_parse(str, user.username):
+        raise HTTPException(status_code=422, detail="Username input is invalid.")
+
+    if not db.try_parse(str, user.password):
+        raise HTTPException(status_code=422, detail="Password input is invalid.")
 
     # set username to lowercase
     user.username = user.username.lower()

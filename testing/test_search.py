@@ -2,20 +2,16 @@ from fastapi.testclient import TestClient
 
 from src.api.server import app
 
-import json
-
 client = TestClient(app)
 
+def test_search_fail():
+    response = client.get("/search/?type=badtest")
+    assert response.status_code == 422
 
-def test_search1():
-    response = client.get("/search/?name=bowie")
-    assert response.status_code == 200
+def test_search_fail_2():
+    response = client.get("/search/?type=artist&name=xXXXXXXXX____XXXXXXX")
+    assert response.status_code == 422
 
-    with open("testing/search/search_bowie.json", encoding="utf-8") as f:
-        assert response.json() == json.load(f)
-
-def test_get_artist_404():
-    response = client.get("/search/?name=skrillex")
-    assert response.status_code == 404
-
-    assert response.json() == {"detail": "No results."}
+def test_search_fail_3():
+    response = client.get("/search/?type=artist&limit=-1")
+    assert response.status_code == 422
