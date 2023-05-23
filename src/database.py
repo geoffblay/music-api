@@ -15,6 +15,13 @@ def database_connection_url():
     return f"postgresql://{DB_USER}:{DB_PASSWD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
 
 
+def try_parse(type, val):
+    try:
+        return type(val)
+    except ValueError:
+        return None
+
+
 # *********************************************************************************
 # create the database engine
 

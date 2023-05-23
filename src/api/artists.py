@@ -1,9 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from enum import Enum
 from src import database as db
-from fastapi.params import Query
-from pydantic import BaseModel
-from datetime import date
 import sqlalchemy as sa
 
 router = APIRouter()
@@ -32,7 +28,11 @@ def get_artist(artist_id: int):
     * `release_date`: the release date of the album.
     """
 
-    # get artist and track information
+    # check if artist_id is an integer
+    if not db.try_parse(int, artist_id):
+        raise HTTPException(status_code=404, detail="Artist ID must be an integer")
+
+    # get artist and track information for artist
     track_stmt = sa.text(
         """
         SELECT 
@@ -47,11 +47,10 @@ def get_artist(artist_id: int):
         """
     )
 
-    # get artist and album information
+    # get artist and album information for artist
     album_stmt = sa.text(
         """
         SELECT 
-            ar.artist_id, ar.name, ar.birthdate, ar.deathdate, ar.gender,
             a.album_id, a.title AS album_title, a.release_date
         FROM 
             artists AS ar
