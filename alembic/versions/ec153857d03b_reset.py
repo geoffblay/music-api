@@ -1,8 +1,8 @@
-"""updated tracks
+"""reset
 
-Revision ID: 9fdb646d81b6
+Revision ID: ec153857d03b
 Revises: 
-Create Date: 2023-05-22 12:02:54.527077
+Create Date: 2023-05-22 18:43:41.060337
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9fdb646d81b6'
+revision = 'ec153857d03b'
 down_revision = None
 branch_labels = None
 depends_on = None
