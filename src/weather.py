@@ -14,7 +14,7 @@ def get_weather_data(city) -> dict:
         f"http://api.weatherapi.com/v1/current.json?key={get_api_key()}&q={city}"
     )
 
-    if result.json()["error"]:
+    if 'error' in result.json():
         return {"error": result.json()["error"]["message"]}
 
     json = {
