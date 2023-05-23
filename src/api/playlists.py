@@ -214,6 +214,50 @@ def create(
 
         return {"tracks": list(tracks.values())}
 
+@router.put("/playlists/{playlist_id}/track/{track_id}", tags=["playlists"])
+def add_track_to_playlist(playlist_id: int, track_id: int):
+    """
+    This endpoint adds a track to a playlist
+
+    The endpoint accepts a JSON object with the following fields:
+    * `playlist_id`: the id of the playlist
+    * `track_id`: the id of the track
+
+    The endpoint returns the id of the resulting playlist that was created.
+    """
+
+    if not db.try_parse(int, playlist_id):
+        raise HTTPException(status_code=404, detail="Playlist ID must be an integer")
+
+    if not db.try_parse(int, track_id):
+        raise HTTPException(status_code=404, detail="Track ID must be an integer")
+
+    with db.engine.begin() as conn:
+        playlist = conn.execute(
+            sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+        ).first()
+        if not playlist:
+            raise HTTPException(
+                status_code=404, detail=f"Playlist {playlist_id} not found"
+            )
+
+        track = conn.execute(
+            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
+        ).first()
+        if not track:
+            raise HTTPException(
+                status_code=404, detail=f"Track {track_id} not found"
+            )
+
+        new_playlist_track_stmt = sa.insert(db.playlist_track).values(
+            {
+                "playlist_id": playlist_id,
+                "track_id": track_id,
+            }
+        )
+        conn.execute(new_playlist_track_stmt)
+
+    return {"message": f"Track {track_id} added to playlist {playlist_id}."}
 
 @router.post("/playlists/", tags=["playlists"])
 def add_playlist(playlist: PlaylistJson):
