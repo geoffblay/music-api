@@ -1,6 +1,4 @@
-from sqlalchemy.orm import Session
 import src.database as db
-from src.datatypes import Albums, Artists, Tracks, Album_Artist, Track_Artist
 from faker import Faker
 from sqlalchemy import insert
 
@@ -10,7 +8,7 @@ fake = Faker()
 def seed_db(engine):
     # start a new connection
     with engine.begin() as connection:
-        for _ in range(50):  # Create 50 artists
+        for _ in range(10):  # Create 50 artists
             artist_data = {
                 "name": fake.name(),
                 "gender": fake.random_element(elements=("Male", "Female")),
@@ -23,7 +21,7 @@ def seed_db(engine):
             ]  # get the id of the created artist
 
             # Create 10 albums per artist
-            for _ in range(10):
+            for _ in range(5):
                 album_data = {
                     "title": fake.sentence(nb_words=5),
                     "release_date": fake.date_between(
@@ -42,8 +40,8 @@ def seed_db(engine):
                 }
                 connection.execute(insert(db.album_artist), album_artist_data)
 
-                # Create 10 tracks per album
-                for _ in range(10):
+                # Create 6 tracks per album
+                for _ in range(6):
                     track_data = {
                         "title": fake.sentence(nb_words=3),
                         "runtime": fake.random_int(
@@ -55,7 +53,7 @@ def seed_db(engine):
                             start_date=album_data["release_date"], end_date="today"
                         ),
                         "vibe_score": fake.random_int(
-                            min=1, max=10
+                            min=0, max=400
                         ),  # random vibe score between 1 and 10
                     }
                     result = connection.execute(insert(db.tracks), track_data)

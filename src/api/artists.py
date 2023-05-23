@@ -65,6 +65,9 @@ def get_artist(artist_id: int):
     with db.engine.begin() as conn:
         # get tracks and albums from database
         track_result = conn.execute(track_stmt, {"artist_id": artist_id})
+        if track_result.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Artist not found")
+
         album_result = conn.execute(album_stmt, {"artist_id": artist_id})
 
         track_result = [row._asdict() for row in track_result]
@@ -83,33 +86,33 @@ def get_artist(artist_id: int):
 
         # iterate through each track, add to the artist dictionary
         for row in track_result:
-            # if {
-            #     "track_id": row["track_id"],
-            #     "title": row["title"],
-            #     "release_date": row["release_date"],
-            # } not in artist["tracks"]:
-            #     # add track to artist if not already added
-            artist["tracks"].append(
-                {
-                    "track_id": row["track_id"],
-                    "title": row["title"],
-                    "release_date": row["release_date"],
-                }
-            )
+            if {
+                "track_id": row["track_id"],
+                "title": row["title"],
+                "release_date": row["release_date"],
+            } not in artist["tracks"]:
+                # add track to artist if not already added
+                artist["tracks"].append(
+                    {
+                        "track_id": row["track_id"],
+                        "title": row["title"],
+                        "release_date": row["release_date"],
+                    }
+                )
 
         for row in album_result:
-            # if {
-            #     "album_id": row["album_id"],
-            #     "title": row["album_title"],
-            #     "release_date": row["release_date"],
-            # } not in artist["albums"]:
-            # add album to artist if not already added
-            artist["albums"].append(
-                {
-                    "album_id": row["album_id"],
-                    "title": row["album_title"],
-                    "release_date": row["release_date"],
-                }
-            )
+            if {
+                "album_id": row["album_id"],
+                "title": row["album_title"],
+                "release_date": row["release_date"],
+            } not in artist["albums"]:
+                # add album to artist if not already added
+                artist["albums"].append(
+                    {
+                        "album_id": row["album_id"],
+                        "title": row["album_title"],
+                        "release_date": row["release_date"],
+                    }
+                )
 
         return artist
