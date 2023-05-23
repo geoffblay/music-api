@@ -5,7 +5,8 @@ CSC365 Databases Project
 * Cole Robinson: crobin27@calpoly.edu
 * Geoff Blaylock: blaylock@calpoly.edu
 
-This API will allow users to quickly access information about their favorite artists, albums, and songs. In particular, this database will focus on rock and roll based music, exploring the different subgenres of music in this area. We will include endpoints that track items like genre, release year, runtime, and more. Users will be able to specify tracks with unique Spotify or Apple Music track IDs, or they can choose to list tracks, albums, or artists based on many sorting and filtering options. Users will also be able to access real time hot charting tracks and albums! Additionally, users will be able to write new music data to the database.
+
+This API will allow users to quickly access information about their favorite artists, albums, and songs. We will include endpoints that track items like genre, release year, runtime, and more. Or they can choose to list tracks, albums, or artists based on many sorting and filtering options. Additionally, users will be able to write new music data to the database.
 
 
 **Technical Specification for Music API**
@@ -17,7 +18,6 @@ Cole Robinson, Geoff Blaylock
 Our music API will hold information on all different aspects of the music industry. The database will consist of multiple schemas such as artist, album, song, and playlist. Utilizing this data, the API will be able to make music recommendations, artist recommendations, album recommendations, and create playlists based on given input. Additionally, the API will have read/write capabilities, allowing users to update the database themselves. 
 
 **User Stories**
-
 
 
 1. As a user, I want to search for a specific song, artist, or album so that I can find the desired information quickly.
