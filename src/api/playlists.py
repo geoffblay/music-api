@@ -199,7 +199,6 @@ def create(
         )
 
     avg = sum(vals.values()) / len(vals)
-    print(avg)
 
     with db.engine.begin() as conn:
         sql = """
