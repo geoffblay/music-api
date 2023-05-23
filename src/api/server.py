@@ -7,6 +7,10 @@ ROCK API returns information on popular rock artists, albums, and tracks.
 """
 tags_metadata = [
     {
+        "name": "search",
+        "description": "Search for artists, albums, and tracks.",
+    },
+    {
         "name": "artists",
         "description": "Access information on artists.",
     },
@@ -26,10 +30,6 @@ tags_metadata = [
         "name": "users",
         "descritpion": "Add users to the database.",
     },
-    {
-        "name": "search",
-        "description": "Search for artists, albums, and tracks.",
-    }
 ]
 
 app = FastAPI(
