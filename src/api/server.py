@@ -1,11 +1,15 @@
 from fastapi import FastAPI
-from src.api import artists, tracks, albums, playlists, users
+from src.api import artists, tracks, albums, playlists, users, search
 
 
 description = """
 ROCK API returns information on popular rock artists, albums, and tracks.
 """
 tags_metadata = [
+    {
+        "name": "search",
+        "description": "Search for artists, albums, and tracks.",
+    },
     {
         "name": "artists",
         "description": "Access information on artists.",
@@ -46,6 +50,7 @@ app.include_router(albums.router)
 app.include_router(playlists.router)
 app.include_router(tracks.router)
 app.include_router(users.router)
+app.include_router(search.router)
 
 
 @app.get("/")

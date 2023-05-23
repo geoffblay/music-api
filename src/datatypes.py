@@ -9,13 +9,6 @@ class Albums(Base):
     album_id = sa.Column(sa.Integer, primary_key=True)
     title = sa.Column(sa.Text, nullable=False)
     release_date = sa.Column(sa.Date, nullable=False)
-    genre_id = sa.Column(sa.Integer, sa.ForeignKey("genres.genre_id"), nullable=False)
-
-
-class Genres(Base):
-    __tablename__ = "genres"
-    genre_id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.Text, nullable=False)
 
 
 class Artists(Base):
@@ -32,33 +25,32 @@ class Tracks(Base):
     track_id = sa.Column(sa.Integer, primary_key=True)
     title = sa.Column(sa.Text, nullable=False)
     runtime = sa.Column(sa.Integer, nullable=False)
-    genre_id = sa.Column(sa.ForeignKey("genres.genre_id"), nullable=False)
-    album_id = sa.Column(sa.ForeignKey("albums.album_id"), nullable=False)
-    weather_id = sa.Column(sa.ForeignKey("weather.weather_id"), nullable=False)
+    genre = sa.Column(sa.Text, nullable=True)
+    album_id = sa.Column(sa.ForeignKey("albums.album_id"), nullable=True)
+    release_date = sa.Column(sa.Date, nullable=False)
+    vibe_score = sa.Column(sa.Integer, nullable=False)
 
 
 class Weather(Base):
     __tablename__ = "weather"
     weather_id = sa.Column(sa.Integer, primary_key=True)
     weather = sa.Column(sa.Text, nullable=False)
-
-
-class Vibe(Base):
-    __tablename__ = "vibe"
-    vibe_id = sa.Column(sa.Integer, primary_key=True)
-    vibe = sa.Column(sa.Text, nullable=False)
+    weather_rating = sa.Column(sa.Integer, nullable=False)
 
 
 class Playlists(Base):
     __tablename__ = "playlists"
     playlist_id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.Text, nullable=False)
+    user_id = sa.Column(sa.ForeignKey("users.user_id"), nullable=False)
 
 
 class Playlist_Track(Base):
     __tablename__ = "playlist_track"
     playlist_track_id = sa.Column(sa.Integer, primary_key=True)
-    playlist_id = sa.Column(sa.ForeignKey("playlists.playlist_id"), nullable=False)
+    playlist_id = sa.Column(
+        sa.ForeignKey("playlists.playlist_id", ondelete="CASCADE"), nullable=False
+    )
     track_id = sa.Column(sa.ForeignKey("tracks.track_id"), nullable=False)
 
 
@@ -74,3 +66,10 @@ class Track_Artist(Base):
     track_artist_id = sa.Column(sa.Integer, primary_key=True)
     track_id = sa.Column(sa.ForeignKey("tracks.track_id"), nullable=False)
     artist_id = sa.Column(sa.ForeignKey("artists.artist_id"), nullable=False)
+
+
+class Users(Base):
+    __tablename__ = "users"
+    user_id = sa.Column(sa.Integer, primary_key=True)
+    username = sa.Column(sa.Text, nullable=False)
+    password = sa.Column(sa.Text, nullable=False)
