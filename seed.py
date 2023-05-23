@@ -8,19 +8,23 @@ fake = Faker()
 def seed_db(engine):
     # start a new connection
     with engine.begin() as connection:
-        for _ in range(10):  # Create 50 artists
+        for _ in range(10):  # Create 10 artists
+            if fake.random_int(min=0, max=1) == 0:
+                deathdate = fake.date_between(start_date="-100y", end_date="today")
+            else:
+                deathdate = None
             artist_data = {
                 "name": fake.name(),
                 "gender": fake.random_element(elements=("Male", "Female")),
                 "birthdate": fake.date_of_birth(),
-                "deathdate": fake.date_between(start_date="-100y", end_date="today"),
+                "deathdate": deathdate,
             }
             result = connection.execute(insert(db.artists), artist_data)
             artist_id = result.inserted_primary_key[
                 0
             ]  # get the id of the created artist
 
-            # Create 10 albums per artist
+            # Create 5 albums per artist
             for _ in range(5):
                 album_data = {
                     "title": fake.sentence(nb_words=5),
@@ -54,7 +58,7 @@ def seed_db(engine):
                         ),
                         "vibe_score": fake.random_int(
                             min=0, max=400
-                        ),  # random vibe score between 1 and 10
+                        ),  # random vibe score between 0 and 400
                     }
                     result = connection.execute(insert(db.tracks), track_data)
                     track_id = result.inserted_primary_key[
