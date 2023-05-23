@@ -94,9 +94,22 @@ def create(
     * `num_tracks`: specifying num_tracks will return a playlist with the specified number of tracks.
 
     """
+    
+    if not db.try_parse(int, num_tracks):
+        raise HTTPException(
+            status_code=400,
+            detail="Number of tracks must be an integer.",
+        )
+
     vals = {}
 
     if location:
+        if not db.try_parse(str, location):
+            raise HTTPException(
+                status_code=400,
+                detail="Location must be a string.",
+            )
+
         weather_data = weather.get_weather_data(location)
 
         if weather_data["error"]:
@@ -128,6 +141,12 @@ def create(
             vals["weather"] = result[0]
 
     if vibe:
+        if not db.try_parse(str, vibe):
+            raise HTTPException(
+                status_code=400,
+                detail="Vibe must be a string.",
+            )
+
         if vibe == "happy":
             vals["mood"] = 343
         elif vibe == "party":
