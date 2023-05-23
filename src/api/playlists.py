@@ -279,8 +279,9 @@ def add_playlist(playlist: PlaylistJson):
     This endpoint adds a playlist to the database
 
     The endpoint accepts a JSON object with the following fields:
-    - name: string
-    - track_ids: a list of track_ids for the playlist
+    * `name`: the name of the playlist
+    * `track_ids`: a list of track ids
+    * `user_id`: the id of the user
 
     The endpoint returns the id of the resulting playlist that was created.
     """
@@ -298,6 +299,14 @@ def add_playlist(playlist: PlaylistJson):
     """
     )
 
+    check_users_stmt = sa.text(
+        """
+        SELECT COUNT(*)
+        FROM users
+        WHERE user_id = :user_id
+        """
+    )
+
     with db.engine.begin() as conn:
         count = conn.execute(
             check_tracks_stmt, {"track_ids": playlist.track_ids}
@@ -306,6 +315,11 @@ def add_playlist(playlist: PlaylistJson):
             raise HTTPException(
                 status_code=400, detail="One or more track ids does not exist."
             )
+
+        count = conn.execute(check_users_stmt, {"user_id": playlist.user_id}).scalar()
+        if count == 0:
+            raise HTTPException(status_code=400, detail="User does not exist.")
+
         new_playlist_stmt = sa.insert(db.playlists).values(
             {"name": playlist.name, "user_id": playlist.user_id}
         )
