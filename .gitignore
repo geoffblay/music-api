@@ -5,8 +5,4 @@ __pycache__
 node_modules
 alembic.ini
 .vscode
-<<<<<<< HEAD
 .vercel
-=======
-.vercel
->>>>>>> dev
