@@ -81,8 +81,8 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
     return {"message": f"Track {track_id} deleted from playlist {playlist_id}."}
 
 
-@router.get("/create/", tags=["playlists"])
-def create(
+@router.get("/playlists/generate", tags=["playlists"])
+def generate(
     location: str = "",
     vibe: str = "",
     num_tracks: int = 10,
@@ -241,7 +241,6 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
     """
 
     if not db.try_parse(int, playlist_id):
-        print("dsfojdsf")
         raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     if not db.try_parse(int, track_id):

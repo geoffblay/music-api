@@ -1,11 +1,55 @@
 from fastapi import APIRouter, HTTPException
 from src import database as db, weather
-from pydantic import BaseModel
 import sqlalchemy as sa
-from datetime import date
+from fastapi.params import Query
 
 router = APIRouter()
 
+@router.get("/albums/", tags=["albums"])
+def list_albums(
+    name: str = "",
+    limit: int = Query(50, ge=1, le=250),
+    offset: int = Query(0, ge=0),
+):
+    """
+    This endpoint returns a list of albums. For each album it returns:
+    * `album_id`: the unique id of the album
+    * `title`: the title of the album
+    * `artist_names`: a list of the names of the artists on the album
+    * `release_date`: the release date of the album
+
+    You can filter for albums whose titles contain a string by using the
+    `name` query parameter.
+
+    The `limit` and `offset` query
+    parameters are used for pagination. The `limit` query parameter specifies the
+    maximum number of results to return. The `offset` query parameter specifies the
+    number of results to skip before returning results.
+    """
+
+    list_stmt = sa.text("""
+        SELECT a.album_id, a.title, a.release_date, ar.name AS artist_names
+        FROM albums AS a
+        JOIN album_artist AS aa ON aa.album_id = a.album_id
+        JOIN artists AS ar ON ar.artist_id = aa.artist_id
+        WHERE a.title LIKE '%' || :name || '%'
+        LIMIT :limit
+        OFFSET :offset
+        """
+    )
+
+    with db.engine.begin() as conn:
+
+        result = conn.execute(
+            list_stmt,
+            {
+                "name": name,
+                "limit": limit,
+                "offset": offset,
+            }
+        )
+        result = [r._asdict() for r in list(result)]
+    return result
 
 @router.get("/albums/{album_id}", tags=["albums"])
 def get_album(album_id: int):
