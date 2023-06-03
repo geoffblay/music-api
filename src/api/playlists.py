@@ -241,7 +241,6 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
     """
 
     if not db.try_parse(int, playlist_id):
-        print("dsfojdsf")
         raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     if not db.try_parse(int, track_id):
