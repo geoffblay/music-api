@@ -111,6 +111,7 @@ def get_score(weather, time, temperature, mood):
         score += result[0]
     
     # MOOD
+    mood = mood.lower()
     if mood == "happy":
        score += 343
     elif mood == "party":
