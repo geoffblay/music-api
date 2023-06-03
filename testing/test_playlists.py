@@ -4,7 +4,17 @@ from src.api.server import app
 
 import json
 
+from src.api.playlists import get_score
+
 client = TestClient(app)
+
+def test_generate_score():
+    result = get_score("Clear", "13:00", 80, "chill")
+    assert result == 308.5
+
+def test_generate_score_2():
+    result = get_score("Heavy snow", "01:00", 5, "heartbroken")
+    assert result == 10
 
 
 def test_get_playlist_fail():
@@ -15,7 +25,6 @@ def test_get_playlist_fail_2():
     response = client.get("/playlists/-1")
     assert response.status_code == 422
 
-# missing title
 def test_post_playlist_fail():
     response = client.post(
         "/playlists",
