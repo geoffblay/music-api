@@ -4,6 +4,11 @@ from src.api.server import app
 
 client = TestClient(app)
 
+def test_list_albums_fail():
+    response = client.get("/albums?name=badtest11111")
+    assert response.status_code == 200
+    assert response.json() == []
+
 
 def test_get_album_fail():
     response = client.get("/albums/AF")

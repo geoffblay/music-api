@@ -7,6 +7,13 @@ import json
 client = TestClient(app)
 
 
+def test_list_tracks_fail():
+    response = client.get("/tracks?name=badtest11111")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+
 def test_get_track_fail():
     response = client.get("/tracks/badtest")
     assert response.status_code == 422

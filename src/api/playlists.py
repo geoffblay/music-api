@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from enum import Enum
 from src import database as db, weather
 from pydantic import BaseModel
@@ -81,11 +81,65 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
     return {"message": f"Track {track_id} deleted from playlist {playlist_id}."}
 
 
-@router.get("/create/", tags=["playlists"])
-def create(
-    location: str = "",
-    vibe: str = "",
-    num_tracks: int = 10,
+def get_score(weather, time, temperature, mood):
+    score = 0
+
+    # TEMPERATURE
+    score += temperature * 4
+
+    # TIME OF DAY
+    if (
+        int(time.split(":")[0]) >= 18
+        or int(time.split(":")[0]) <= 6
+    ):
+        score += 0
+    else:
+        score += 400
+
+    # WEATHER
+    with db.engine.begin() as conn:
+        sql = """
+        SELECT weather_rating 
+        FROM weather 
+        WHERE weather = :cond
+        """
+
+        print(weather)
+        result = conn.execute(
+            sa.text(sql), [{"cond": weather}]
+        ).fetchone()
+        score += result[0]
+    
+    # MOOD
+    if mood == "happy":
+       score += 343
+    elif mood == "party":
+        score += 286
+    elif mood == "workout":
+        score += 229
+    elif mood == "focus":
+        score += 171
+    elif mood == "chill":
+        score += 114
+    elif mood == "sleep":
+        score += 57
+    elif mood == "heartbroken":
+        score += 0
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid vibe.",
+        )
+    
+    print(score)
+    return score / 4
+
+
+@router.get("/playlists/generate", tags=["playlists"])
+def generate(
+    location: str = "San Luis Obispo",
+    mood: str = "happy",
+    num_tracks: int = Query(10, ge=1, le=100),
 ):
     """
     This endpoint will return an auto-generated playlist based on the user's location, time, and vibe.
@@ -116,89 +170,27 @@ def create(
     * `num_tracks`: specifying num_tracks will return a playlist with the specified number of tracks.
 
     """
-
-    if not db.try_parse(int, num_tracks):
+    
+    if not db.try_parse(str, location):
         raise HTTPException(
             status_code=422,
-            detail="Number of tracks must be an integer.",
+            detail="Location must be a string.",
         )
-
-    vals = {}
-
-    if location:
-        if not db.try_parse(str, location):
-            raise HTTPException(
-                status_code=422,
-                detail="Location must be a string.",
-            )
-
-        weather_data = weather.get_weather_data(location)
-
-        if "error" in weather_data:
-            raise HTTPException(
-                status_code=422,
-                detail=weather_data["error"],
-            )
-
-        vals["temp"] = weather_data["temperature"] * 4
-
-        if (
-            int(weather_data["time"].split(":")[0]) >= 18
-            or int(weather_data["time"].split(":")[0]) <= 6
-        ):
-            time_val = 0
-        else:
-            time_val = 400
-        vals["time"] = time_val
-
-        with db.engine.begin() as conn:
-            sql = """
-            SELECT weather_rating 
-            FROM weather 
-            WHERE weather = :cond
-            """
-
-            print(weather_data["weather"])
-            result = conn.execute(
-                sa.text(sql), [{"cond": weather_data["weather"]}]
-            ).fetchone()
-            print(result)
-            vals["weather"] = result[0]
-
-    if vibe:
-        if not db.try_parse(str, vibe):
-            raise HTTPException(
-                status_code=422,
-                detail="Vibe must be a string.",
-            )
-
-        if vibe == "happy":
-            vals["mood"] = 343
-        elif vibe == "party":
-            vals["mood"] = 286
-        elif vibe == "workout":
-            vals["mood"] = 229
-        elif vibe == "focus":
-            vals["mood"] = 171
-        elif vibe == "chill":
-            vals["mood"] = 114
-        elif vibe == "sleep":
-            vals["mood"] = 57
-        elif vibe == "heartbroken":
-            vals["mood"] = 0
-        else:
-            raise HTTPException(
-                status_code=422,
-                detail="Invalid vibe.",
-            )
-
-    if num_tracks < 1:
+    
+    if not db.try_parse(str, mood):
         raise HTTPException(
             status_code=422,
-            detail="Number of tracks must be greater than 0.",
+            detail="Vibe must be a string.",
         )
-
-    avg = sum(vals.values()) / len(vals)
+    
+    weather_data = weather.get_weather_data(location)
+    if "error" in weather_data:
+        raise HTTPException(
+            status_code=422,
+            detail=weather_data["error"],
+        )
+    
+    score = get_score(weather_data["weather"], weather_data["time"], weather_data["temperature"], mood)
 
     with db.engine.begin() as conn:
         sql = """
@@ -206,11 +198,11 @@ def create(
         FROM tracks AS t
         JOIN track_artist AS ta ON t.track_id = ta.track_id
         JOIN artists AS a ON ta.artist_id = a.artist_id
-        ORDER BY ABS(:avg - t.vibe_score)
+        ORDER BY ABS(:score - t.vibe_score)
         LIMIT :num_tracks
         """
         result = conn.execute(
-            sa.text(sql), [{"avg": avg, "num_tracks": num_tracks}]
+            sa.text(sql), [{"score": score, "num_tracks": num_tracks}]
         ).fetchall()
 
         tracks = {}
@@ -228,6 +220,9 @@ def create(
         return {"tracks": list(tracks.values())}
 
 
+    
+
+
 @router.put("/playlists/{playlist_id}/track/{track_id}", tags=["playlists"])
 def add_track_to_playlist(playlist_id: int, track_id: int):
     """
@@ -241,7 +236,6 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
     """
 
     if not db.try_parse(int, playlist_id):
-        print("dsfojdsf")
         raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     if not db.try_parse(int, track_id):
