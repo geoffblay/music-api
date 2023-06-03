@@ -6,6 +6,11 @@ import json
 
 client = TestClient(app)
 
+def test_list_artists_fail():
+    response = client.get("/artists?name=badtest11111")
+    assert response.status_code == 200
+    assert response.json() == []
+
 
 def test_get_artist_404():
     response = client.get("/artists/-5")

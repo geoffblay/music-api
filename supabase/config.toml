@@ -1,6 +1,10 @@
 # A string used to distinguish different Supabase projects on the same host. Defaults to the working
 # directory name when running `supabase init`.
+<<<<<<< HEAD
 project_id = "music-api"
+=======
+project_id = "rock-api"
+>>>>>>> 60b50876fa816cb1811eb4c7249dd31c19a6d1d5
 
 [api]
 # Port to use for the API URL.

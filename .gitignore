@@ -4,4 +4,8 @@ __pycache__
 /.env
 node_modules
 .vscode
+<<<<<<< HEAD
 .vercel
+=======
+.vercel
+>>>>>>> 60b50876fa816cb1811eb4c7249dd31c19a6d1d5

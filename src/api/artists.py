@@ -1,9 +1,52 @@
 from fastapi import APIRouter, HTTPException
 from src import database as db
 import sqlalchemy as sa
+from fastapi.params import Query
+
 
 router = APIRouter()
 
+@router.get("/artists/", tags=["artists"])
+def list_artists(
+    name: str = "",
+    limit: int = Query(50, ge=1, le=250),
+    offset: int = Query(0, ge=0),
+):
+    """
+    This endpoint returns a list of artists. For each artist it returns:
+    * `artist_id`: the unique id of the artist
+    * `name`: the name of the artist
+
+    You can filter for artists whose names contain a string by using the
+    `name` query parameter.
+
+    The `limit` and `offset` query
+    parameters are used for pagination. The `limit` query parameter specifies the
+    maximum number of results to return. The `offset` query parameter specifies the
+    number of results to skip before returning results.
+    """
+
+    list_stmt = sa.text("""
+        SELECT artist_id, name
+        FROM artists
+        WHERE name LIKE '%' || :name || '%'
+        LIMIT :limit
+        OFFSET :offset
+        """
+    )
+
+    with db.engine.begin() as conn:
+
+        result = conn.execute(
+            list_stmt,
+            {
+                "name": name,
+                "limit": limit,
+                "offset": offset,
+            }
+        )
+        result = [r._asdict() for r in list(result)]
+    return result
 
 @router.get("/artists/{artist_id}", tags=["artists"])
 def get_artist(artist_id: int):
