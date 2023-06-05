@@ -343,7 +343,7 @@ def get_playlist(playlist_id: int):
     * `artist_id`: the internal id of the artist.
     * `name`: the name of the artist.
     """
-    with db.engine.connect() as conn:
+    with db.engine.begin() as conn:
         playlist = conn.execute(
             sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
         ).fetchone()
