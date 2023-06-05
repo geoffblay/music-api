@@ -5,6 +5,7 @@ from fastapi.params import Query
 
 router = APIRouter()
 
+
 @router.get("/albums/", tags=["albums"])
 def list_albums(
     name: str = "",
@@ -27,7 +28,8 @@ def list_albums(
     number of results to skip before returning results.
     """
 
-    list_stmt = sa.text("""
+    list_stmt = sa.text(
+        """
         SELECT a.album_id, a.title, a.release_date, ar.name AS artist_names
         FROM albums AS a
         JOIN album_artist AS aa ON aa.album_id = a.album_id
@@ -39,17 +41,17 @@ def list_albums(
     )
 
     with db.engine.begin() as conn:
-
         result = conn.execute(
             list_stmt,
             {
                 "name": name,
                 "limit": limit,
                 "offset": offset,
-            }
+            },
         )
         result = [r._asdict() for r in list(result)]
     return result
+
 
 @router.get("/albums/{album_id}", tags=["albums"])
 def get_album(album_id: int):
@@ -135,6 +137,7 @@ def get_album(album_id: int):
 
         return album
 
+
 def get_score(weather, time, temperature, mood):
     score = 0
 
@@ -142,10 +145,7 @@ def get_score(weather, time, temperature, mood):
     score += temperature * 4
 
     # TIME OF DAY
-    if (
-        int(time.split(":")[0]) >= 18
-        or int(time.split(":")[0]) <= 6
-    ):
+    if int(time.split(":")[0]) >= 18 or int(time.split(":")[0]) <= 6:
         score += 0
     else:
         score += 400
@@ -159,15 +159,13 @@ def get_score(weather, time, temperature, mood):
         """
 
         print(weather)
-        result = conn.execute(
-            sa.text(sql), [{"cond": weather}]
-        ).fetchone()
+        result = conn.execute(sa.text(sql), [{"cond": weather}]).fetchone()
         score += result[0]
-    
+
     # MOOD
     mood = mood.lower()
     if mood == "happy":
-       score += 343
+        score += 343
     elif mood == "party":
         score += 286
     elif mood == "workout":
@@ -185,9 +183,10 @@ def get_score(weather, time, temperature, mood):
             status_code=422,
             detail="Invalid vibe.",
         )
-    
+
     print(score)
     return score / 4
+
 
 @router.get("/recommend/", tags=["albums"])
 def recommend(
@@ -232,21 +231,23 @@ def recommend(
             status_code=422,
             detail="Location must be a string.",
         )
-    
+
     if not db.try_parse(str, mood):
         raise HTTPException(
             status_code=422,
             detail="Vibe must be a string.",
         )
-    
+
     weather_data = weather.get_weather_data(location)
     if "error" in weather_data:
         raise HTTPException(
             status_code=422,
             detail=weather_data["error"],
         )
-    
-    score = get_score(weather_data["weather"], weather_data["time"], weather_data["temperature"], mood)
+
+    score = get_score(
+        weather_data["weather"], weather_data["time"], weather_data["temperature"], mood
+    )
 
     with db.engine.begin() as conn:
         sql = """
@@ -268,7 +269,7 @@ def recommend(
 
         album_id = result1[0][0]
 
-        tracks = [{"track_id": t[3], "title": t[4], "runtime": t[5]} for t in result1]
+        tracks = [{"track_id": t[3], "title": t[5], "runtime": t[6]} for t in result1]
 
         sql = """
         SELECT artists.artist_id, artists.name
