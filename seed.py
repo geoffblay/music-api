@@ -27,7 +27,7 @@ engine = sqlalchemy.create_engine(database_connection_url(), use_insertmanyvalue
 
 num_artists = 400
 num_users = 10000
-num_playlists = 15000
+num_playlists = 14000
 
 genres = ["rock", "pop", "rap", "country", "jazz", "classical", "metal", "hip-hop"]
 
@@ -147,7 +147,7 @@ def add_playlists(connection, firstUserId, lastUserId, firstTrackId, lastTrackId
         result = connection.execute(sqlalchemy.insert(db.playlists), playlist_data)
         playlist_id = result.inserted_primary_key[0]
 
-        # create associations between playlists and tracks
+        # create associations between playlists and tracks, 5-150 tracks per playlist
         playlist_track_data = [
             {
                 "playlist_id": playlist_id,
