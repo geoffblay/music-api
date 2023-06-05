@@ -27,7 +27,8 @@ engine = sqlalchemy.create_engine(database_connection_url(), use_insertmanyvalue
 
 num_artists = 400
 num_users = 10000
-num_playlists = 15000
+num_playlists = 14000
+num_tracks_in_playlists = 1000000
 
 genres = ["rock", "pop", "rap", "country", "jazz", "classical", "metal", "hip-hop"]
 
@@ -66,7 +67,9 @@ def add_music_data(connection):
         # Create 5-10 albums per previously created artist
         for _ in range(fake.random_int(min=5, max=10)):
             album_data = {
-                "title": fake.sentence(nb_words=fake.random_int(min=1, max=5)),
+                "title": fake.sentence(nb_words=fake.random_int(min=1, max=5))
+                .strip(".")
+                .title(),
                 "release_date": fake.date_between(start_date="-50y", end_date="today"),
             }
             result = connection.execute(sqlalchemy.insert(db.albums), album_data)
@@ -82,7 +85,9 @@ def add_music_data(connection):
             # Create 6-10 tracks per album
             for _ in range(fake.random_int(min=6, max=10)):
                 track_data = {
-                    "title": fake.sentence(fake.random_int(min=1, max=5)),
+                    "title": fake.sentence(nb_words=fake.random_int(min=1, max=5))
+                    .strip(".")
+                    .title(),
                     "runtime": fake.random_int(min=90, max=600),
                     "genre": album_genre,
                     "album_id": album_id,
@@ -135,29 +140,44 @@ def add_user_data(connection):
     return firstUserId, lastUserId
 
 
-# bulk inserting playlist_track for each playlist
+# bulk inserting playlists, then bulk inserting playlist_track
 def add_playlists(connection, firstUserId, lastUserId, firstTrackId, lastTrackId):
-    for _ in range(num_playlists):
-        playlist_data = {
-            "name": fake.sentence(nb_words=fake.random_int(min=1, max=5)),
+    # create playlists
+    playlist_data = [
+        {
+            "name": fake.sentence(nb_words=fake.random_int(min=1, max=5))
+            .strip(".")
+            .title(),
             "user_id": fake.random_int(min=firstUserId, max=lastUserId),
         }
-        if _ % 100 == 0:
-            print("Playlist #" + str(_) + " created")
-        result = connection.execute(sqlalchemy.insert(db.playlists), playlist_data)
-        playlist_id = result.inserted_primary_key[0]
+        for _ in range(num_playlists)
+    ]
+    # insert first playlist and retrieve its id
+    first_playlist_id = connection.execute(
+        sqlalchemy.insert(db.playlists), playlist_data[0]
+    ).inserted_primary_key[0]
 
-        # create associations between playlists and tracks
-        playlist_track_data = [
-            {
-                "playlist_id": playlist_id,
-                "track_id": fake.random_int(min=firstTrackId, max=lastTrackId),
-            }
-            for _ in range(fake.random_int(min=5, max=150))
-        ]
+    # insert the rest of the playlists
+    connection.execute(sqlalchemy.insert(db.playlists), playlist_data[1:-1])
 
-        # insert all values at once
-        connection.execute(sqlalchemy.insert(db.playlist_track), playlist_track_data)
+    # get the last playlist id
+    last_playlist_id = connection.execute(
+        sqlalchemy.insert(db.playlists), playlist_data[-1]
+    ).inserted_primary_key[0]
+
+    # create associations between playlists and tracks, 5-150 tracks per playlist
+    playlist_track_data = [
+        {
+            "playlist_id": fake.random_int(min=first_playlist_id, max=last_playlist_id),
+            "track_id": fake.random_int(min=firstTrackId, max=lastTrackId),
+        }
+        for _ in range(num_tracks_in_playlists)
+    ]
+
+    print("Playlists created in memory - inserting into database")
+
+    # insert all values at once
+    connection.execute(sqlalchemy.insert(db.playlist_track), playlist_track_data)
     print("Playlists created")
 
 

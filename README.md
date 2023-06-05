@@ -8,6 +8,11 @@ CSC365 Databases Project
 
 This API will allow users to quickly access information about their favorite artists, albums, and songs. We will include endpoints that track items like genre, release year, runtime, and more. Or they can choose to list tracks, albums, or artists based on many sorting and filtering options. Additionally, users will be able to write new music data to the database.
 
+**v3 Phenomenon Write-Up**
+
+
+
+
 
 **Technical Specification for Music API**
 
