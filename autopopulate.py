@@ -67,7 +67,9 @@ def add_music_data(connection):
         # Create 5-10 albums per previously created artist
         for _ in range(fake.random_int(min=5, max=10)):
             album_data = {
-                "title": fake.sentence(nb_words=fake.random_int(min=1, max=5)),
+                "title": fake.sentence(nb_words=fake.random_int(min=1, max=5))
+                .strip(".")
+                .title(),
                 "release_date": fake.date_between(start_date="-50y", end_date="today"),
             }
             result = connection.execute(sqlalchemy.insert(db.albums), album_data)
@@ -83,7 +85,9 @@ def add_music_data(connection):
             # Create 6-10 tracks per album
             for _ in range(fake.random_int(min=6, max=10)):
                 track_data = {
-                    "title": fake.sentence(fake.random_int(min=1, max=5)),
+                    "title": fake.sentence(nb_words=fake.random_int(min=1, max=5))
+                    .strip(".")
+                    .title(),
                     "runtime": fake.random_int(min=90, max=600),
                     "genre": album_genre,
                     "album_id": album_id,
@@ -141,7 +145,9 @@ def add_playlists(connection, firstUserId, lastUserId, firstTrackId, lastTrackId
     # create playlists
     playlist_data = [
         {
-            "name": fake.sentence(nb_words=fake.random_int(min=1, max=5)),
+            "name": fake.sentence(nb_words=fake.random_int(min=1, max=5))
+            .strip(".")
+            .title(),
             "user_id": fake.random_int(min=firstUserId, max=lastUserId),
         }
         for _ in range(num_playlists)
@@ -167,6 +173,8 @@ def add_playlists(connection, firstUserId, lastUserId, firstTrackId, lastTrackId
         }
         for _ in range(num_tracks_in_playlists)
     ]
+
+    print("Playlists created in memory - inserting into database")
 
     # insert all values at once
     connection.execute(sqlalchemy.insert(db.playlist_track), playlist_track_data)
