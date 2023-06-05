@@ -31,7 +31,7 @@ def delete_playlist(playlist_id: int):
     with db.engine.connect().execution_options(
         isolation_level="REPEATABLE READ"
     ) as conn:
-        with conn.begin:
+        with conn.begin():
             result = conn.execute(
                 check_playlist_stmt, {"playlist_id": playlist_id}
             ).scalar()
@@ -60,7 +60,7 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
     with db.engine.connect().execution_options(
         isolation_level="REPEATABLE READ"
     ) as conn:
-        with conn.begin:
+        with conn.begin():
             playlist = conn.execute(
                 sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
             ).first()
@@ -247,7 +247,7 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
     with db.engine.connect().execution_options(
         isolation_level="REPEATABLE READ"
     ) as conn:
-        with conn.begin:
+        with conn.begin():
             playlist = conn.execute(
                 sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
             ).first()
@@ -358,7 +358,7 @@ def get_playlist(playlist_id: int):
     with db.engine.connect().execution_options(
         isolation_level="REPEATABLE READ"
     ) as conn:
-        with conn.begin:
+        with conn.begin():
             playlist = conn.execute(
                 sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
             ).fetchone()
