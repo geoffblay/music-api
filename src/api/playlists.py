@@ -88,10 +88,7 @@ def get_score(weather, time, temperature, mood):
     score += temperature * 4
 
     # TIME OF DAY
-    if (
-        int(time.split(":")[0]) >= 18
-        or int(time.split(":")[0]) <= 6
-    ):
+    if int(time.split(":")[0]) >= 18 or int(time.split(":")[0]) <= 6:
         score += 0
     else:
         score += 400
@@ -105,14 +102,12 @@ def get_score(weather, time, temperature, mood):
         """
 
         print(weather)
-        result = conn.execute(
-            sa.text(sql), [{"cond": weather}]
-        ).fetchone()
+        result = conn.execute(sa.text(sql), [{"cond": weather}]).fetchone()
         score += result[0]
-    
+
     # MOOD
     if mood == "happy":
-       score += 343
+        score += 343
     elif mood == "party":
         score += 286
     elif mood == "workout":
@@ -130,7 +125,7 @@ def get_score(weather, time, temperature, mood):
             status_code=422,
             detail="Invalid vibe.",
         )
-    
+
     print(score)
     return score / 4
 
@@ -170,57 +165,58 @@ def generate(
     * `num_tracks`: specifying num_tracks will return a playlist with the specified number of tracks.
 
     """
-    
+
     if not db.try_parse(str, location):
         raise HTTPException(
             status_code=422,
             detail="Location must be a string.",
         )
-    
+
     if not db.try_parse(str, mood):
         raise HTTPException(
             status_code=422,
             detail="Vibe must be a string.",
         )
-    
+
     weather_data = weather.get_weather_data(location)
     if "error" in weather_data:
         raise HTTPException(
             status_code=422,
             detail=weather_data["error"],
         )
-    
-    score = get_score(weather_data["weather"], weather_data["time"], weather_data["temperature"], mood)
 
-    with db.engine.begin() as conn:
-        sql = """
-        SELECT t.track_id, t.title, t.runtime, t.genre, a.artist_id, a.name
-        FROM tracks AS t
-        JOIN track_artist AS ta ON t.track_id = ta.track_id
-        JOIN artists AS a ON ta.artist_id = a.artist_id
-        ORDER BY ABS(:score - t.vibe_score)
-        LIMIT :num_tracks
-        """
-        result = conn.execute(
-            sa.text(sql), [{"score": score, "num_tracks": num_tracks}]
-        ).fetchall()
+    score = get_score(
+        weather_data["weather"], weather_data["time"], weather_data["temperature"], mood
+    )
+    with db.engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+        with conn.begin():
+            sql = """
+            SELECT t.track_id, t.title, t.runtime, t.genre, a.artist_id, a.name
+            FROM tracks AS t
+            JOIN track_artist AS ta ON t.track_id = ta.track_id
+            JOIN artists AS a ON ta.artist_id = a.artist_id
+            ORDER BY ABS(:score - t.vibe_score)
+            LIMIT :num_tracks
+            """
+            result = conn.execute(
+                sa.text(sql), [{"score": score, "num_tracks": num_tracks}]
+            ).fetchall()
 
-        tracks = {}
-        for row in result:
-            if row[0] not in tracks:
-                tracks[row[0]] = {
-                    "title": row[1],
-                    "runtime": row[2],
-                    "genre": row[3],
-                    "artists": [{"artist_id": row[4], "name": row[5]}],
-                }
-            else:
-                tracks[row[0]]["artists"].append({"artist_id": row[4], "name": row[5]})
+            tracks = {}
+            for row in result:
+                if row[0] not in tracks:
+                    tracks[row[0]] = {
+                        "title": row[1],
+                        "runtime": row[2],
+                        "genre": row[3],
+                        "artists": [{"artist_id": row[4], "name": row[5]}],
+                    }
+                else:
+                    tracks[row[0]]["artists"].append(
+                        {"artist_id": row[4], "name": row[5]}
+                    )
 
-        return {"tracks": list(tracks.values())}
-
-
-    
+            return {"tracks": list(tracks.values())}
 
 
 @router.put("/playlists/{playlist_id}/track/{track_id}", tags=["playlists"])
