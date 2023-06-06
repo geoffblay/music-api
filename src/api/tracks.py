@@ -4,8 +4,59 @@ from pydantic import BaseModel
 from datetime import date
 import sqlalchemy as sa
 from datetime import date
+from fastapi.params import Query
+
+
 
 router = APIRouter()
+
+@router.get("/tracks/", tags=["tracks"])
+def list_tracks(
+    name: str = "",
+    limit: int = Query(50, ge=1, le=250),
+    offset: int = Query(0, ge=0),
+):
+    """
+    This endpoint returns a list of tracks. For each track it returns:
+    * `track_id`: the unique id of the track
+    * `title`: the title of the track
+    * `runtime`: the duration of the track in seconds
+    * `album_title`: the title of the album
+    * `artist_names`: a list of the names of the artists
+
+    You can filter for tracks whose titles contain a string by using the
+    `name` query parameter.
+
+    The `limit` and `offset` query
+    parameters are used for pagination. The `limit` query parameter specifies the
+    maximum number of results to return. The `offset` query parameter specifies the
+    number of results to skip before returning results.
+    """
+
+    list_stmt = sa.text("""
+        SELECT t.track_id, t.title, t.runtime, al.title AS album_title, ar.name AS artist_names
+        FROM tracks AS t
+        JOIN albums AS al ON t.album_id = al.album_id
+        JOIN track_artist AS ta ON ta.track_id = t.track_id
+        JOIN artists AS ar ON ar.artist_id = ta.artist_id
+        WHERE t.title LIKE '%' || :name || '%'
+        LIMIT :limit
+        OFFSET :offset
+        """
+    )
+
+    with db.engine.begin() as conn:
+
+        result = conn.execute(
+            list_stmt,
+            {
+                "name": name,
+                "limit": limit,
+                "offset": offset,
+            }
+        )
+        result = [r._asdict() for r in list(result)]
+    return result
 
 
 @router.get("/tracks/{track_id}", tags=["tracks"])

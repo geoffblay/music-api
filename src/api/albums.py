@@ -1,10 +1,56 @@
 from fastapi import APIRouter, HTTPException
 from src import database as db, weather
-from pydantic import BaseModel
 import sqlalchemy as sa
-from datetime import date
+from fastapi.params import Query
 
 router = APIRouter()
+
+
+@router.get("/albums/", tags=["albums"])
+def list_albums(
+    name: str = "",
+    limit: int = Query(50, ge=1, le=250),
+    offset: int = Query(0, ge=0),
+):
+    """
+    This endpoint returns a list of albums. For each album it returns:
+    * `album_id`: the unique id of the album
+    * `title`: the title of the album
+    * `artist_names`: a list of the names of the artists on the album
+    * `release_date`: the release date of the album
+
+    You can filter for albums whose titles contain a string by using the
+    `name` query parameter.
+
+    The `limit` and `offset` query
+    parameters are used for pagination. The `limit` query parameter specifies the
+    maximum number of results to return. The `offset` query parameter specifies the
+    number of results to skip before returning results.
+    """
+
+    list_stmt = sa.text(
+        """
+        SELECT a.album_id, a.title, a.release_date, ar.name AS artist_names
+        FROM albums AS a
+        JOIN album_artist AS aa ON aa.album_id = a.album_id
+        JOIN artists AS ar ON ar.artist_id = aa.artist_id
+        WHERE a.title LIKE '%' || :name || '%'
+        LIMIT :limit
+        OFFSET :offset
+        """
+    )
+
+    with db.engine.begin() as conn:
+        result = conn.execute(
+            list_stmt,
+            {
+                "name": name,
+                "limit": limit,
+                "offset": offset,
+            },
+        )
+        result = [r._asdict() for r in list(result)]
+    return result
 
 
 @router.get("/albums/{album_id}", tags=["albums"])
@@ -92,11 +138,61 @@ def get_album(album_id: int):
         return album
 
 
+def get_score(weather, time, temperature, mood):
+    score = 0
+
+    # TEMPERATURE
+    score += temperature * 4
+
+    # TIME OF DAY
+    if int(time.split(":")[0]) >= 18 or int(time.split(":")[0]) <= 6:
+        score += 0
+    else:
+        score += 400
+
+    # WEATHER
+    with db.engine.begin() as conn:
+        sql = """
+        SELECT weather_rating 
+        FROM weather 
+        WHERE weather = :cond
+        """
+
+        print(weather)
+        result = conn.execute(sa.text(sql), [{"cond": weather}]).fetchone()
+        score += result[0]
+
+    # MOOD
+    mood = mood.lower()
+    if mood == "happy":
+        score += 343
+    elif mood == "party":
+        score += 286
+    elif mood == "workout":
+        score += 229
+    elif mood == "focus":
+        score += 171
+    elif mood == "chill":
+        score += 114
+    elif mood == "sleep":
+        score += 57
+    elif mood == "heartbroken":
+        score += 0
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid vibe.",
+        )
+
+    print(score)
+    return score / 4
+
+
 @router.get("/recommend/", tags=["albums"])
 def recommend(
-    location: str = "",
-    vibe: str = "",
-    num_tracks: int = 10,
+    location: str = "San Luis Obispo",
+    mood: str = "Happy",
+    num_tracks: int = Query(10, ge=1, le=100),
 ):
     """
     This endpoint will return an album based on a  location, the time of day at that location, the user's current
@@ -130,88 +226,28 @@ def recommend(
     * `num_tracks`: specifying num_tracks will return an album close to the specified number of tracks.
     """
 
-    if not db.try_parse(int, num_tracks):
+    if not db.try_parse(str, location):
         raise HTTPException(
             status_code=422,
-            detail="Number of tracks must be an integer.",
+            detail="Location must be a string.",
         )
 
-    vals = {}
-
-    if location:
-        if not db.try_parse(str, location):
-            raise HTTPException(
-                status_code=422,
-                detail="Location must be a string.",
-            )
-
-        weather_data = weather.get_weather_data(location)
-
-        if 'error' in weather_data:
-            raise HTTPException(
-                status_code=422,
-                detail=weather_data["error"],
-            )
-
-        vals["temp"] = weather_data["temperature"] * 4
-
-        if (
-            int(weather_data["time"].split(":")[0]) >= 18
-            or int(weather_data["time"].split(":")[0]) <= 6
-        ):
-            time_val = 0
-        else:
-            time_val = 400
-        vals["time"] = time_val
-
-        with db.engine.begin() as conn:
-            sql = """
-            SELECT weather_rating 
-            FROM weather 
-            WHERE weather = :cond
-            """
-
-            print(weather_data['weather'])
-            result = conn.execute(
-                sa.text(sql), [{"cond": weather_data["weather"]}]
-            ).fetchone()
-            print(result)
-            vals["weather"] = result[0]
-
-    if vibe:
-        if not db.try_parse(str, vibe):
-            raise HTTPException(
-                status_code=422,
-                detail="Vibe must be a string.",
-            )
-
-        if vibe == "happy":
-            vals["mood"] = 343
-        elif vibe == "party":
-            vals["mood"] = 286
-        elif vibe == "workout":
-            vals["mood"] = 229
-        elif vibe == "focus":
-            vals["mood"] = 171
-        elif vibe == "chill":
-            vals["mood"] = 114
-        elif vibe == "sleep":
-            vals["mood"] = 57
-        elif vibe == "heartbroken":
-            vals["mood"] = 0
-        else:
-            raise HTTPException(
-                status_code=422,
-                detail="Invalid vibe.",
-            )
-        
-    if num_tracks < 1:
+    if not db.try_parse(str, mood):
         raise HTTPException(
             status_code=422,
-            detail="Number of tracks must be greater than 0.",
+            detail="Vibe must be a string.",
         )
 
-    avg = sum(vals.values()) / len(vals)
+    weather_data = weather.get_weather_data(location)
+    if "error" in weather_data:
+        raise HTTPException(
+            status_code=422,
+            detail=weather_data["error"],
+        )
+
+    score = get_score(
+        weather_data["weather"], weather_data["time"], weather_data["temperature"], mood
+    )
 
     with db.engine.begin() as conn:
         sql = """
@@ -223,18 +259,17 @@ def recommend(
         FROM albums
         JOIN tracks ON tracks.album_id = albums.album_id
         GROUP BY albums.album_id
-        ORDER BY ABS(:avg - AVG(tracks.vibe_score)), ABS(:num_tracks - COUNT(tracks.track_id))
+        ORDER BY ABS(:score - AVG(tracks.vibe_score)), ABS(:num_tracks - COUNT(tracks.track_id))
         LIMIT 1
         ) AS t1 ON t1.album_id = tracks.album_id
         """
         result1 = conn.execute(
-            sa.text(sql), [{"avg": avg, "num_tracks": num_tracks}]
+            sa.text(sql), [{"score": score, "num_tracks": num_tracks}]
         ).fetchall()
 
         album_id = result1[0][0]
-        # genre = max(result1[0][4], key=result1[0][4])
 
-        tracks = [{"track_id": t[3], "title": t[4], "runtime": t[5]} for t in result1]
+        tracks = [{"track_id": t[3], "title": t[5], "runtime": t[6]} for t in result1]
 
         sql = """
         SELECT artists.artist_id, artists.name

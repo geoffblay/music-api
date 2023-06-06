@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from enum import Enum
 from src import database as db, weather
 from pydantic import BaseModel
@@ -28,20 +28,22 @@ def delete_playlist(playlist_id: int):
         WHERE playlist_id = :playlist_id
         """
     )
+    with db.engine.connect().execution_options(
+        isolation_level="REPEATABLE READ"
+    ) as conn:
+        with conn.begin():
+            result = conn.execute(
+                check_playlist_stmt, {"playlist_id": playlist_id}
+            ).scalar()
+            if result == 0:
+                raise HTTPException(
+                    status_code=422, detail=f"Playlist {playlist_id} not found"
+                )
 
-    with db.engine.begin() as conn:
-        result = conn.execute(
-            check_playlist_stmt, {"playlist_id": playlist_id}
-        ).scalar()
-        if result == 0:
-            raise HTTPException(
-                status_code=422, detail=f"Playlist {playlist_id} not found"
+            conn.execute(
+                sa.delete(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
             )
-
-        conn.execute(
-            sa.delete(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
-        )
-    return {"message": "Playlist deleted."}
+        return {"message": "Playlist deleted."}
 
 
 @router.delete("/playlists/{playlist_id}/tracks/{track_id}", tags=["playlists"])
@@ -55,37 +57,92 @@ def delete_track_from_playlist(playlist_id: int, track_id: int):
     if not db.try_parse(int, track_id):
         raise HTTPException(status_code=422, detail="Track ID must be an integer")
 
-    with db.engine.begin() as conn:
-        playlist = conn.execute(
-            sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
-        ).first()
-        if not playlist:
-            raise HTTPException(
-                status_code=422, detail=f"Playlist {playlist_id} not found"
-            )
+    with db.engine.connect().execution_options(
+        isolation_level="REPEATABLE READ"
+    ) as conn:
+        with conn.begin():
+            playlist = conn.execute(
+                sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+            ).first()
+            if not playlist:
+                raise HTTPException(
+                    status_code=422, detail=f"Playlist {playlist_id} not found"
+                )
 
-        track = conn.execute(
-            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
-        ).first()
-        if not track:
-            raise HTTPException(status_code=422, detail=f"Track {track_id} not found")
+            track = conn.execute(
+                sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
+            ).first()
+            if not track:
+                raise HTTPException(
+                    status_code=422, detail=f"Track {track_id} not found"
+                )
 
-        conn.execute(
-            sa.delete(db.playlist_track).where(
-                sa.and_(
-                    db.playlist_track.c.playlist_id == playlist_id,
-                    db.playlist_track.c.track_id == track_id,
+            conn.execute(
+                sa.delete(db.playlist_track).where(
+                    sa.and_(
+                        db.playlist_track.c.playlist_id == playlist_id,
+                        db.playlist_track.c.track_id == track_id,
+                    )
                 )
             )
+        return {"message": f"Track {track_id} deleted from playlist {playlist_id}."}
+
+
+def get_score(weather, time, temperature, mood):
+    score = 0
+
+    # TEMPERATURE
+    score += temperature * 4
+
+    # TIME OF DAY
+    if int(time.split(":")[0]) >= 18 or int(time.split(":")[0]) <= 6:
+        score += 0
+    else:
+        score += 400
+
+    # WEATHER
+    with db.engine.begin() as conn:
+        sql = """
+        SELECT weather_rating 
+        FROM weather 
+        WHERE weather = :cond
+        """
+
+        print(weather)
+        result = conn.execute(sa.text(sql), [{"cond": weather}]).fetchone()
+        score += result[0]
+
+    # MOOD
+    mood = mood.lower()
+    if mood == "happy":
+        score += 343
+    elif mood == "party":
+        score += 286
+    elif mood == "workout":
+        score += 229
+    elif mood == "focus":
+        score += 171
+    elif mood == "chill":
+        score += 114
+    elif mood == "sleep":
+        score += 57
+    elif mood == "heartbroken":
+        score += 0
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid vibe.",
         )
-    return {"message": f"Track {track_id} deleted from playlist {playlist_id}."}
+
+    print(score)
+    return score / 4
 
 
-@router.get("/create/", tags=["playlists"])
-def create(
-    location: str = "",
-    vibe: str = "",
-    num_tracks: int = 10,
+@router.get("/playlists/generate", tags=["playlists"])
+def generate(
+    location: str = "San Luis Obispo",
+    mood: str = "happy",
+    num_tracks: int = Query(10, ge=1, le=100),
 ):
     """
     This endpoint will return an auto-generated playlist based on the user's location, time, and vibe.
@@ -117,115 +174,57 @@ def create(
 
     """
 
-    if not db.try_parse(int, num_tracks):
+    if not db.try_parse(str, location):
         raise HTTPException(
             status_code=422,
-            detail="Number of tracks must be an integer.",
+            detail="Location must be a string.",
         )
 
-    vals = {}
+    if not db.try_parse(str, mood):
+        raise HTTPException(
+            status_code=422,
+            detail="Vibe must be a string.",
+        )
 
-    if location:
-        if not db.try_parse(str, location):
-            raise HTTPException(
-                status_code=422,
-                detail="Location must be a string.",
-            )
+    weather_data = weather.get_weather_data(location)
+    if "error" in weather_data:
+        raise HTTPException(
+            status_code=422,
+            detail=weather_data["error"],
+        )
 
-        weather_data = weather.get_weather_data(location)
-
-        if "error" in weather_data:
-            raise HTTPException(
-                status_code=422,
-                detail=weather_data["error"],
-            )
-
-        vals["temp"] = weather_data["temperature"] * 4
-
-        if (
-            int(weather_data["time"].split(":")[0]) >= 18
-            or int(weather_data["time"].split(":")[0]) <= 6
-        ):
-            time_val = 0
-        else:
-            time_val = 400
-        vals["time"] = time_val
-
-        with db.engine.begin() as conn:
+    score = get_score(
+        weather_data["weather"], weather_data["time"], weather_data["temperature"], mood
+    )
+    with db.engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+        with conn.begin():
             sql = """
-            SELECT weather_rating 
-            FROM weather 
-            WHERE weather = :cond
+            SELECT t.track_id, t.title, t.runtime, t.genre, a.artist_id, a.name
+            FROM tracks AS t
+            JOIN track_artist AS ta ON t.track_id = ta.track_id
+            JOIN artists AS a ON ta.artist_id = a.artist_id
+            ORDER BY ABS(:score - t.vibe_score)
+            LIMIT :num_tracks
             """
-
-            print(weather_data["weather"])
             result = conn.execute(
-                sa.text(sql), [{"cond": weather_data["weather"]}]
-            ).fetchone()
-            print(result)
-            vals["weather"] = result[0]
+                sa.text(sql), [{"score": score, "num_tracks": num_tracks}]
+            ).fetchall()
 
-    if vibe:
-        if not db.try_parse(str, vibe):
-            raise HTTPException(
-                status_code=422,
-                detail="Vibe must be a string.",
-            )
+            tracks = {}
+            for row in result:
+                if row[0] not in tracks:
+                    tracks[row[0]] = {
+                        "title": row[1],
+                        "runtime": row[2],
+                        "genre": row[3],
+                        "artists": [{"artist_id": row[4], "name": row[5]}],
+                    }
+                else:
+                    tracks[row[0]]["artists"].append(
+                        {"artist_id": row[4], "name": row[5]}
+                    )
 
-        if vibe == "happy":
-            vals["mood"] = 343
-        elif vibe == "party":
-            vals["mood"] = 286
-        elif vibe == "workout":
-            vals["mood"] = 229
-        elif vibe == "focus":
-            vals["mood"] = 171
-        elif vibe == "chill":
-            vals["mood"] = 114
-        elif vibe == "sleep":
-            vals["mood"] = 57
-        elif vibe == "heartbroken":
-            vals["mood"] = 0
-        else:
-            raise HTTPException(
-                status_code=422,
-                detail="Invalid vibe.",
-            )
-
-    if num_tracks < 1:
-        raise HTTPException(
-            status_code=422,
-            detail="Number of tracks must be greater than 0.",
-        )
-
-    avg = sum(vals.values()) / len(vals)
-
-    with db.engine.begin() as conn:
-        sql = """
-        SELECT t.track_id, t.title, t.runtime, t.genre, a.artist_id, a.name
-        FROM tracks AS t
-        JOIN track_artist AS ta ON t.track_id = ta.track_id
-        JOIN artists AS a ON ta.artist_id = a.artist_id
-        ORDER BY ABS(:avg - t.vibe_score)
-        LIMIT :num_tracks
-        """
-        result = conn.execute(
-            sa.text(sql), [{"avg": avg, "num_tracks": num_tracks}]
-        ).fetchall()
-
-        tracks = {}
-        for row in result:
-            if row[0] not in tracks:
-                tracks[row[0]] = {
-                    "title": row[1],
-                    "runtime": row[2],
-                    "genre": row[3],
-                    "artists": [{"artist_id": row[4], "name": row[5]}],
-                }
-            else:
-                tracks[row[0]]["artists"].append({"artist_id": row[4], "name": row[5]})
-
-        return {"tracks": list(tracks.values())}
+            return {"tracks": list(tracks.values())}
 
 
 @router.put("/playlists/{playlist_id}/track/{track_id}", tags=["playlists"])
@@ -241,36 +240,40 @@ def add_track_to_playlist(playlist_id: int, track_id: int):
     """
 
     if not db.try_parse(int, playlist_id):
-        print("dsfojdsf")
         raise HTTPException(status_code=422, detail="Playlist ID must be an integer")
 
     if not db.try_parse(int, track_id):
         raise HTTPException(status_code=422, detail="Track ID must be an integer")
 
-    with db.engine.begin() as conn:
-        playlist = conn.execute(
-            sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
-        ).first()
-        if not playlist:
-            raise HTTPException(
-                status_code=422, detail=f"Playlist {playlist_id} not found"
+    with db.engine.connect().execution_options(
+        isolation_level="REPEATABLE READ"
+    ) as conn:
+        with conn.begin():
+            playlist = conn.execute(
+                sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+            ).first()
+            if not playlist:
+                raise HTTPException(
+                    status_code=422, detail=f"Playlist {playlist_id} not found"
+                )
+
+            track = conn.execute(
+                sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
+            ).first()
+            if not track:
+                raise HTTPException(
+                    status_code=422, detail=f"Track {track_id} not found"
+                )
+
+            new_playlist_track_stmt = sa.insert(db.playlist_track).values(
+                {
+                    "playlist_id": playlist_id,
+                    "track_id": track_id,
+                }
             )
+            conn.execute(new_playlist_track_stmt)
 
-        track = conn.execute(
-            sa.select(db.tracks).where(db.tracks.c.track_id == track_id)
-        ).first()
-        if not track:
-            raise HTTPException(status_code=422, detail=f"Track {track_id} not found")
-
-        new_playlist_track_stmt = sa.insert(db.playlist_track).values(
-            {
-                "playlist_id": playlist_id,
-                "track_id": track_id,
-            }
-        )
-        conn.execute(new_playlist_track_stmt)
-
-    return {"message": f"Track {track_id} added to playlist {playlist_id}."}
+        return {"message": f"Track {track_id} added to playlist {playlist_id}."}
 
 
 @router.post("/playlists/", tags=["playlists"])
@@ -353,29 +356,32 @@ def get_playlist(playlist_id: int):
     * `artist_id`: the internal id of the artist.
     * `name`: the name of the artist.
     """
-    with db.engine.connect() as conn:
-        playlist = conn.execute(
-            sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
-        ).fetchone()
+    with db.engine.connect().execution_options(
+        isolation_level="REPEATABLE READ"
+    ) as conn:
+        with conn.begin():
+            playlist = conn.execute(
+                sa.select(db.playlists).where(db.playlists.c.playlist_id == playlist_id)
+            ).fetchone()
 
-        if playlist:
-            tracks = conn.execute(
-                sa.select(db.tracks)
-                .select_from(db.tracks.join(db.playlist_track))
-                .where(db.playlist_track.c.playlist_id == playlist_id)
-            ).fetchall()
-            tracks = [t._asdict() for t in tracks]
-
-            for track in tracks:
-                artists = conn.execute(
-                    sa.select(db.artists)
-                    .select_from(db.artists.join(db.track_artist))
-                    .where(db.track_artist.c.track_id == track["track_id"])
+            if playlist:
+                tracks = conn.execute(
+                    sa.select(db.tracks)
+                    .select_from(db.tracks.join(db.playlist_track))
+                    .where(db.playlist_track.c.playlist_id == playlist_id)
                 ).fetchall()
-                track["artists"] = [a._asdict() for a in artists]
+                tracks = [t._asdict() for t in tracks]
 
-            playlist = playlist._asdict()
-            playlist["tracks"] = tracks
-            return playlist
-        else:
-            raise HTTPException(status_code=422, detail="Playlist not found")
+                for track in tracks:
+                    artists = conn.execute(
+                        sa.select(db.artists)
+                        .select_from(db.artists.join(db.track_artist))
+                        .where(db.track_artist.c.track_id == track["track_id"])
+                    ).fetchall()
+                    track["artists"] = [a._asdict() for a in artists]
+
+                playlist = playlist._asdict()
+                playlist["tracks"] = tracks
+                return playlist
+            else:
+                raise HTTPException(status_code=422, detail="Playlist not found")
