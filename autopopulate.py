@@ -25,7 +25,7 @@ def database_connection_url():
 
 engine = sqlalchemy.create_engine(database_connection_url(), use_insertmanyvalues=True)
 
-num_artists = 400
+num_artists = 200
 num_users = 10000
 num_playlists = 14000
 num_tracks_in_playlists = 1000000
@@ -45,6 +45,9 @@ def seed_db(engine):
 # due to the interdependencies between Artist, Album, and Track, we need to insert them in a specific order
 # This slows down the process, but it's the only way to ensure that the data is inserted correctly
 def add_music_data(connection):
+    print(
+        "Note that due to the interdependencies between Artist, Album, and Track,\n we need to insert them in a specific order. This slows down the process, but it's the only way to ensure that the data is inserted correctly"
+    )
     firstTrackFlag = True
     for _ in range(num_artists):
         if _ % 10 == 0:
@@ -174,7 +177,7 @@ def add_playlists(connection, firstUserId, lastUserId, firstTrackId, lastTrackId
         for _ in range(num_tracks_in_playlists)
     ]
 
-    print("Playlists created in memory - inserting into database")
+    print("Playlists created in memory - bulk inserting into database")
 
     # insert all values at once
     connection.execute(sqlalchemy.insert(db.playlist_track), playlist_track_data)
