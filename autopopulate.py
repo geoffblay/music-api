@@ -184,9 +184,9 @@ def add_playlists(connection, firstUserId, lastUserId, firstTrackId, lastTrackId
     print("Playlists created")
 
 
-def main():
-    seed_db(engine)
+# def main():
+#     seed_db(engine)
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

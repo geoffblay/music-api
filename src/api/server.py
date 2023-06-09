@@ -41,14 +41,13 @@ app = FastAPI(
     openapi_tags=tags_metadata,
 )
 
+app.include_router(artists.router)
+app.include_router(albums.router)
+app.include_router(playlists.router)
+app.include_router(tracks.router)
+app.include_router(users.router)
+
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Music API. See /docs for more information."}
-
-
-app.include_router(artists.router)
-app.include_router(albums.router)
-# app.include_router(playlists.router)
-# app.include_router(tracks.router)
-# app.include_router(users.router)
