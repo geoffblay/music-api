@@ -31,13 +31,13 @@ Our API Endpoints are deployed using Vercel to provide continuous integration an
 ## Documentation Files
 Listed below are documents we have gathered that provide further insight into the development of this API.
 
-For a comprehensive overview of each of the endpoints designed, check out our [Technical Specification](Documentation/Technical_Specification.pdf).
+For a comprehensive overview of each of the endpoints designed, check out our [Technical Specification](Documentation/TechSpec.md).
 
-To keep track of our table relationships, we created an Entity-Relationship Diagram to provide a visual representation of our database tables. Using crow's foot notation, we ensured that each entity relationship is accounted for. Check out our [ER Diagram](Documentation/Dog_Trainer_ER_Diagram.pdf).
+To keep track of our table relationships, we created an Entity-Relationship Diagram to provide a visual representation of our database tables. Using crow's foot notation, we ensured that each entity relationship is accounted for. Check out our [ER Diagram](Documentation/Music API ER Diagram.pdf).
 
-We've identified the issues that can arise from the complex interactions of transactions in our database when there's no concurrency control. In response, we've designed a solution to ensure the isolation of our transactions. Check out [Isolation Levels](Documentation/Isolation_Levels.pdf) to learn more.
+We've identified the issues that can arise from the complex interactions of transactions in our database when there's no concurrency control. In response, we've designed a solution to ensure the isolation of our transactions. Check out [Concurrency Issues](Documentation/Concurreny Issues.pdf) to learn more.
 
-To view the indexes we created to make our SQL execution time faster, check out [Indexes](Documentation/i.pdf).
+To view the indexes we created to make our SQL execution time faster, check out [Indexes](Documentation/Indexing Improvements.pdf).
 
 ## Development Environment Setup
 
