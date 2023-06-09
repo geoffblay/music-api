@@ -138,7 +138,7 @@ def get_score(weather, time, temperature, mood):
     return score / 4
 
 
-@router.get("/playlists/generate", tags=["playlists"])
+@router.get("/playlists/generate/", tags=["playlists"])
 def generate(
     location: str = "San Luis Obispo",
     mood: str = "happy",
