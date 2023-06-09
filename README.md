@@ -1,112 +1,71 @@
-# rock-api
-CSC365 Databases Project
+# Music API
 
-### Programmers: 
-* Cole Robinson: crobin27@calpoly.edu
-* Geoff Blaylock: blaylock@calpoly.edu
+## Authors
+Cole Robinson (colerobinson1112@gmail.com)
 
+Geoff Blaylock (gblaylock2024@gmail.com)
 
-This API will allow users to quickly access information about their favorite artists, albums, and songs. We will include endpoints that track items like genre, release year, runtime, and more. Or they can choose to list tracks, albums, or artists based on many sorting and filtering options. Additionally, users will be able to write new music data to the database.
+<details open="open">
+<summary>Table of Contents</summary>
+<br>
 
-**v3 Phenomenon Write-Up**
+- [About](#about)
+- [Vercel Links](#vercel-links)
+- [Documentation Files](#documentation-files)
+- [Development Environment Setup](#development-environment-setup)
+    - [Prerequisites](#prerequisites)
+    - [Local Environment](#set-up-your-local-environment)
+    - [Environment Variables](#environment-variables)
+    - [Alembic and Faker data](#alembic-and-faker-data)
+    - [Run the API](#run-the-api)
+</details>
 
+## About
+Welcome to our Music API. Our Music Discovery API provides a seamless integration of real-time weather data with user-inputted vibe for personalized music recommendations. When a user inputs their current location, our API retrieves the current weather data for that specific area. Combined with the user's indicated 'vibe' — a mood or feeling they wish their music to align with — our system uses a sophisticated algorithm to curate songs and albums that best fit the given combination. Users have the option to create playlists, add music information, and obtain music reccomendations. 
 
+## Vercel Links
+Our API Endpoints are deployed using Vercel to provide continuous integration and deployment throughout the development process while always maintaining a stable production build. Below are links to our production and staging API endpoints:
+- Production: https://music-api-git-prod-crobin27.vercel.app
+- Staging: https://music-api-git-staging-crobin27.vercel.app
 
+## Documentation Files
+Listed below are documents we have gathered that provide further insight into the development of this API.
 
+For a comprehensive overview of each of the endpoints designed, check out our [Technical Specification](Documentation/Technical_Specification.pdf).
 
-**Technical Specification for Music API**
+To keep track of our table relationships, we created an Entity-Relationship Diagram to provide a visual representation of our database tables. Using crow's foot notation, we ensured that each entity relationship is accounted for. Check out our [ER Diagram](Documentation/Dog_Trainer_ER_Diagram.pdf).
 
-Cole Robinson, Geoff Blaylock
+We've identified the issues that can arise from the complex interactions of transactions in our database when there's no concurrency control. In response, we've designed a solution to ensure the isolation of our transactions. Check out [Isolation Levels](Documentation/Isolation_Levels.pdf) to learn more.
 
-**Overview**
+To view the indexes we created to make our SQL execution time faster, check out [Indexes](Documentation/i.pdf).
 
-Our music API will hold information on all different aspects of the music industry. The database will consist of multiple schemas such as artist, album, song, and playlist. Utilizing this data, the API will be able to make music recommendations, artist recommendations, album recommendations, and create playlists based on given input. Additionally, the API will have read/write capabilities, allowing users to update the database themselves. 
+## Local Setup
 
-**User Stories**
+### Prerequisites
+All required packages are listed in [requirements.txt](requirements.txt) and can be installed locally using the following command:
+![image](https://github.com/crobin27/music-api/assets/76970281/1f62f0b4-d099-4687-9606-6ade12ebcb81)
 
+### Set up your local environment
+Follow steps listed [here](https://supabase.com/docs/guides/getting-started/local-development) in the Supabase documentation.
 
-1. As a user, I want to search for a specific song, artist, or album so that I can find the desired information quickly.
-2. As a musician, I want to add new songs, artists, and albums to the database so my music can be shared with others.
-3. As a musician, I would like to be able to update or delete my music from the database.
-4. As a user, I want to be able to have a playlist created for me based on my previous song, artist, or album interests. 
-5. As a user, I would like to find similar music from individual songs, artists, or albums to broaden my music knowledge. 
+### Environment Variables
+Create a .env file with these variables:
+```
+POSTGRES_USER="postgres"
+POSTGRES_PASSWORD="postgres"
+POSTGRES_SERVER="localhost"
+POSTGRES_PORT="54322"
+POSTGRES_DB="postgres"
+```
 
-**Endpoints**
+### Alembic and Faker data
+To rebuild alembic and populate with fake data, run:
+```
+sh populate_alembic.sh
+```
 
-**0.) /search?type={type}&query={query}  (GET)**  This endpoint will be used to search the entire database
-
-* Type: the ‘type’ field will be used to specify if the user would like to search for a song, album, artist, playlist. If no type is provided, the search will include all aspects matching. 
-* The query field will be used to take the user’s text input and match the request to find items. 
-
-
-**1.)  /songs/{id}: (GET)** This endpoint will return a single song by its identifier
-
-
-
-* song_id: internal id of the song
-* artists: a list of the artists’ names that perform in the song
-* album: the name of the album the song is on
-* runtime: the time in seconds of the song
-* genre: the genre that best fits the style of the song
-
-**2.) /artists/{id}: (GET)** This endpoint will return a single artist by its identifier
-
-
-
-* artist_id: internal id of the artist
-* name: the name of the artist
-* gender: the gender of the artist
-* age: the current age of the artist
-* num_songs: total number of songs that the artist has in the database
-* num_albums: total number of albums that the artist has in the database
-
-**3.) /albums/{id}: (GET)** This endpoint will return a single album by its identifier
-
-
-
-* album_id: the internal id of the album
-* name: the name of the album
-* artist_ids: a list of all of the artist_id’s that the album belongs to
-* song_ids: a list of all the song_id’s that are in the album
-* total_runtime: the total length of the album if it were to be played through entirely
-
-**4.) /playlists/{id}: (GET)** This endpoint will return a single playlist by its identifier
-
-
-
-* Playlist_id: the internal id of the playlist
-* name: the name of the playlist
-* song_ids: a list of all of the song_id’s that are in the playlist
-* total_runtime: the total length of the playlist if it were to be played through entirely
-
-**5-9.) “/songs”, “/artists”, “/albums”, “/playlists” (POST)** Each of these endpoints will have post functionality as well for musicians looking to add music to the database. The respective inputs for each endpoint will likely be in JSON format and will require input validation prior to posting.
-
-**10.) /playlists/create (GET)** This endpoint will return a created playlist for the user based on user input. 
-
-**Input:**
-
-* song_id: the id of a song to be used to create a stylized playlist
-* genre:  a unique genre to use to create a stylized playlist
-* artist_id: the id of an artist to use to create a stylized playlist
-
-**Output:**
-
-* Json of a stylized playlist, which can then be posted to the database if desired
-
-**Edge Cases**
-
-**1.) Singles:** To handle cases where a user may search for a single that does not belong to an album, we should notify the user. 
-
-**2.) Multiple artist tracks:** In the case that multiple artists are credited for a track, our API should return a data structure that contains data for all artists credited.
-
-**3) Bands:** In the case that users search for a band or group using the artist endpoint, a data structure containing relevant information on all members should be returned.
-
-**4) Input validation:** When input does not correspond to any valid data, make sure to raise a detailed error documenting the issue. 
-
-**5) Multi genre:** In the case that a song or album falls into multiple genres, a data structure containing both genres should be returned. 
-
-**6) Duplicate Entries** In the event that a song, album, or artist potentially gets posted twice, this could lead to undesirable behavior and have transitive effects on other attributes. In order to prevent this, we will make sure that our schema definitions ensure that certain fields are unique. For instance, artist_name will likely be a unique key, as well as the combination of song_id and artist_id. 
-
-**7) Missing/Incomplete Data** In the event that a song, album, or artist potentially gets posted twice, this could lead to undesirable behavior and have transitive effects on other attributes. In order to prevent this, we will make sure that our schema definitions ensure that certain fields are unique. For instance, artist_name will likely be a unique key, as well as the combination of song_id and artist_id. 
-
-**8)Large Requests** Our query parameters for the search function will help to limit the amount of data requested by the user. Though we may decide to define a hard limit on the amount of data returned, if this proves to be an issue. 
+### Run the API
+Run following on your terminal:
+```
+vercel dev
+```
