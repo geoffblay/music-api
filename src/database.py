@@ -30,7 +30,7 @@ engine = sqlalchemy.create_engine(database_url)
 metadata_obj = sqlalchemy.MetaData()
 
 # *********************************************************************************
-
+# autoload with None to induce a lazy load of the table metadata
 tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=None)
 playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=None)
 albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=None)
