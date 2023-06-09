@@ -29,11 +29,13 @@ def list_artists(
     list_stmt = sa.text("""
         SELECT artist_id, name
         FROM artists
-        WHERE name LIKE '%' || :name || '%'
+        WHERE LOWER(name) LIKE '%' || :name || '%'
         LIMIT :limit
         OFFSET :offset
         """
     )
+
+    name = name.lower()
 
     with db.engine.begin() as conn:
 
