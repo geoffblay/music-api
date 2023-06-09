@@ -128,11 +128,12 @@ def add_track(track: TrackJson):
     """
     This endpoint is used to add a new track to the database. The following information is required:
     * `title`: the title of the track.
+    * `album_id`: the id of the album the track belongs to, if there is one.
     * `runtime`: the runtime of the track.
-    * `genre`: the genre of the track, or null if unknown.
+    * `genre`: the genre of the track.
     * `release_date`: the release date of the track.
-    * `artist_ids`: a list of artist ids associated with the track.
-    * `vibe_score`: the vibe score of the track
+    * `artist_ids`: a list of the ids of the artists associated with the track.
+    * `vibe_score`: the vibe score of the track.
     """
     # null and type checks
     if not db.try_parse(str, track.title) or track.title == None:

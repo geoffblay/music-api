@@ -12,7 +12,7 @@ class UserJson(BaseModel):
     password: str
 
 
-@router.post("/users", tags=["users"])
+@router.post("/users/", tags=["users"])
 def add_user(user: UserJson):
     """
     This endpoint adds a user to the database. The following information is required:
@@ -73,7 +73,7 @@ def add_user(user: UserJson):
     return result.scalar()
 
 
-@router.post("/users/validate", tags=["users"])
+@router.post("/users/validate/", tags=["users"])
 def validate_user(user: UserJson):
     """
     This endpoint validates a user to the database. The following information is required:
