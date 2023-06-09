@@ -45,11 +45,11 @@ To view the indexes we created to make our SQL execution time faster, check out 
 All required packages are listed in [requirements.txt](requirements.txt) and can be installed locally using the following command:
 ![image](https://github.com/crobin27/music-api/assets/76970281/1f62f0b4-d099-4687-9606-6ade12ebcb81)
 
-### Set up your local environment
-Follow steps listed [here](https://supabase.com/docs/guides/getting-started/local-development) in the Supabase documentation.
+### Local Environment Setup
+For local setup and testing, we leveraged Supabase's local database setup and Docker to run the container locally. This local setup proved crucial in testing key features without corrupting the staging or production databases. Follow the steps listed [here](https://supabase.com/docs/guides/getting-started/local-development) in the Supabase documentation to get started.
 
 ### Environment Variables
-Create a .env file with these variables:
+Upon creation of the local Docker container and Postgres database, the following environment variables must be configured in a .env file located in the root of the project. The following fields must be included to ensure a stable connection to the local database. 
 ```
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="postgres"
@@ -58,11 +58,20 @@ POSTGRES_PORT="54322"
 POSTGRES_DB="postgres"
 ```
 
-### Alembic and Faker data
-To rebuild alembic and populate with fake data, run:
+In addition to the Postgres connection variables, a Weather API Key must be obtained and set. Information on obtaining an API key can be found here(https://www.weatherapi.com/signup.aspx). Once the key is obtained, set the environment variable like below:
 ```
-sh populate_alembic.sh
+WEATHER_API_KEY="<your_api_key>"
 ```
+
+### Alembic Migrations and Faker data population
+In order to handle database migrations as our schema evolved, we made use of the alembic library's built in autogeneration functionality. More information can be found here(https://alembic.sqlalchemy.org/en/latest/autogenerate.html)
+
+To update the local database to the most recent migration, run
+![image](https://github.com/crobin27/music-api/assets/76970281/547337db-2ad0-4732-8f0d-1dcece8778a7)
+
+We additionally created an autopopulation script that creates just over a million fake rows of data using the python 'faker' library. This step was crucial in testing the database with large sums of data. To populate with fake data, run
+![image](https://github.com/crobin27/music-api/assets/76970281/30b181b8-95b9-4975-bbdd-9d983fe37d7c)
+
 
 ### Run the API
 Run following on your terminal:
