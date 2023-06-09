@@ -1,4 +1,4 @@
-# rock-api
+# music-api
 CSC365 Databases Project
 
 ### Programmers: 
