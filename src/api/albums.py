@@ -16,8 +16,8 @@ def list_albums(
     This endpoint returns a list of albums. For each album it returns:
     * `album_id`: the unique id of the album
     * `title`: the title of the album
-    * `artist_names`: a list of the names of the artists on the album
     * `release_date`: the release date of the album
+    * `artist_names`: a comma-separated list of artists associated with the album
 
     You can filter for albums whose titles contain a string by using the
     `name` query parameter.
@@ -188,7 +188,7 @@ def get_score(weather, time, temperature, mood):
     return score / 4
 
 
-@router.get("/recommend/", tags=["albums"])
+@router.get("/albums/recommend/", tags=["albums"])
 def recommend(
     location: str = "San Luis Obispo",
     mood: str = "Happy",

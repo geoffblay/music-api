@@ -3,7 +3,7 @@ from src.api import artists, tracks, albums, playlists, users
 
 
 description = """
-ROCK API returns information on popular rock artists, albums, and tracks.
+Music API returns information on popular rock artists, albums, and tracks.
 """
 tags_metadata = [
     {
