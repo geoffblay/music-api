@@ -35,7 +35,7 @@ For a comprehensive overview of each of the endpoints designed, check out our [T
 
 To keep track of our table relationships, we created an Entity-Relationship Diagram to provide a visual representation of our database tables. Using crow's foot notation, we ensured that each entity relationship is accounted for. Check out our [ER Diagram](documentation/Music_API_ER_Diagram.pdf).
 
-We've identified the issues that can arise from the complex interactions of transactions in our database when there's no concurrency control. In response, we've designed a solution to ensure the isolation of our transactions. Check out [Concurrency Issues](Documentation/Concurreny_Issues.pdf) to learn more.
+We've identified the issues that can arise from the complex interactions of transactions in our database when there's no concurrency control. In response, we've designed a solution to ensure the isolation of our transactions. Check out [Concurrency Issues](documentation/Concurreny_Issues.pdf) to learn more.
 
 To view the indexes we created to make our SQL execution time faster, check out [Indexes](documentation/Indexing_Improvements.pdf).
 
