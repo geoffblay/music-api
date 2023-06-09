@@ -31,15 +31,15 @@ metadata_obj = sqlalchemy.MetaData()
 
 # *********************************************************************************
 
-tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=engine)
-playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=engine)
-albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=engine)
-artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=engine)
-track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=engine)
-playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=engine)
-album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=engine)
-weather = sqlalchemy.Table("weather", metadata_obj, autoload_with=engine)
-users = sqlalchemy.Table("users", metadata_obj, autoload_with=engine)
+tracks = sqlalchemy.Table("tracks", metadata_obj, autoload_with=None)
+playlists = sqlalchemy.Table("playlists", metadata_obj, autoload_with=None)
+albums = sqlalchemy.Table("albums", metadata_obj, autoload_with=None)
+artists = sqlalchemy.Table("artists", metadata_obj, autoload_with=None)
+track_artist = sqlalchemy.Table("track_artist", metadata_obj, autoload_with=None)
+playlist_track = sqlalchemy.Table("playlist_track", metadata_obj, autoload_with=None)
+album_artist = sqlalchemy.Table("album_artist", metadata_obj, autoload_with=None)
+weather = sqlalchemy.Table("weather", metadata_obj, autoload_with=None)
+users = sqlalchemy.Table("users", metadata_obj, autoload_with=None)
 
 
 def try_parse(type, val):
