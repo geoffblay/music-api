@@ -34,11 +34,13 @@ def list_albums(
         FROM albums AS a
         JOIN album_artist AS aa ON aa.album_id = a.album_id
         JOIN artists AS ar ON ar.artist_id = aa.artist_id
-        WHERE a.title LIKE '%' || :name || '%'
+        WHERE LOWER(a.title) LIKE '%' || :name || '%'
         LIMIT :limit
         OFFSET :offset
         """
     )
+
+    name = name.lower()
 
     with db.engine.begin() as conn:
         result = conn.execute(
