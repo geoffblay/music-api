@@ -323,6 +323,8 @@ def add_playlist(playlist: PlaylistJson):
         if count == 0:
             raise HTTPException(status_code=400, detail="User does not exist.")
 
+        print(playlist.name)
+        print(playlist.user_id)
         new_playlist_stmt = sa.insert(db.playlists).values(
             {"name": playlist.name, "user_id": playlist.user_id}
         )
