@@ -14,9 +14,9 @@ Geoff Blaylock (gblaylock2024@gmail.com)
 - [Documentation Files](#documentation-files)
 - [Development Environment Setup](#development-environment-setup)
     - [Prerequisites](#prerequisites)
-    - [Local Environment](#set-up-your-local-environment)
+    - [Local Environment](#local-environment-environment)
     - [Environment Variables](#environment-variables)
-    - [Alembic and Faker data](#alembic-and-faker-data)
+    - [Alembic and Faker data](#alembic-migrations-and-faker-data-population)
     - [Run the API](#run-the-api)
 </details>
 
@@ -39,7 +39,7 @@ We've identified the issues that can arise from the complex interactions of tran
 
 To view the indexes we created to make our SQL execution time faster, check out [Indexes](Documentation/i.pdf).
 
-## Local Setup
+## Development Environment Setup
 
 ### Prerequisites
 All required packages are listed in [requirements.txt](requirements.txt) and can be installed locally using the following command:
