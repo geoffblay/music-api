@@ -33,6 +33,36 @@ Our music API will hold information on all different aspects of the music indust
 
 **Endpoints**
 
+**1.) /artists/: (GET)** This endpoint returns a list of artists. For each artist, the following information is returned:
+
+* artist_id: internal id of the artist
+* name: the name of the artist
+
+You can filter for artists whose names contain a string by using the *name* query parameter
+
+**2.) /artists/{id}: (GET)** This endpoint will return a single artist by its identifier: For each artist, the following is returned:
+
+* artist_id: internal id of the artist
+* name: the name of the artist
+* birthdate: the birthdate of the artist
+* deathdate: the deathdate of the artsit (if applicable)
+* gender: the gender of the artist
+* age: the current age of the artist
+* tracks: a list of tracks associated with the artist.
+* albums: a list of albums associated with the artist.
+
+Each track is represented by a dictionary with the following keys:
+
+* track_id: the internal id of the track
+* title: the title of the track
+* release_date: the release date of the track
+
+Each album is represented by a dictionary with the following keys:
+
+* album_id: the internal id of the album
+* title: the title of the album
+* release_date: the release date of the album
+
 **0.) /search?type={type}&query={query}  (GET)**  This endpoint will be used to search the entire database
 
 * Type: the ‘type’ field will be used to specify if the user would like to search for a song, album, artist, playlist. If no type is provided, the search will include all aspects matching. 
@@ -49,16 +79,7 @@ Our music API will hold information on all different aspects of the music indust
 * runtime: the time in seconds of the song
 * genre: the genre that best fits the style of the song
 
-**2.) /artists/{id}: (GET)** This endpoint will return a single artist by its identifier
 
-
-
-* artist_id: internal id of the artist
-* name: the name of the artist
-* gender: the gender of the artist
-* age: the current age of the artist
-* num_songs: total number of songs that the artist has in the database
-* num_albums: total number of albums that the artist has in the database
 
 **3.) /albums/{id}: (GET)** This endpoint will return a single album by its identifier
 
